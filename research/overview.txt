@@ -1,0 +1,1 @@
+{"orders":{"total":1130,"by_status":{"pending_payment":482,"sent":648},"total_revenue":92314210,"avg_order_price":81693.991200000004},"customers":717,"client_questions":2,"callback_requests":24,"meal_plans":4,"meals":297,"bitrix_outbox":{"total":638,"failed":0,"success":638}}

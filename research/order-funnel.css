@@ -1,0 +1,1687 @@
+/* ============================================================
+   Order Funnel — пошаговый флоу заказа для промо-лендингов (#10)
+   Мобайл-фёрст. Бренд O-live: лайм #C4F139, тёмно-зелёный #194536.
+   Прототип использовал #4CAF50 — здесь реколор под бренд.
+   Префикс классов: .of-
+   ============================================================ */
+
+/* плавный скролл по якорям шапки (файл грузится только на страницах флоу) */
+html { scroll-behavior: smooth; }
+
+.of {
+    --of-green: #4CAF50;          /* зелёный как в прототипе (кнопки/акценты) */
+    --of-green-d: #43a047;        /* затемнение на hover */
+    --of-lime: #C4F139;           /* акцент/выбор */
+    --of-ink: #111;
+    --of-muted: #888;
+    --of-bg: #f0f0f0;
+    --of-card: #fff;
+    --of-field: #f7f7f7;
+    --of-field-bd: #e8e8e8;
+    --of-radius: 16px;
+
+    background: var(--of-bg);
+    color: var(--of-ink);
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Helvetica, Arial, sans-serif;
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 70vh;
+    position: relative;
+}
+
+/* --- Брендовая шапка флоу --- */
+.of-header {
+    position: static;
+    background: #fff;
+    border-bottom: 1px solid rgba(0, 0, 0, .07);
+}
+
+.of-header__inner {
+    max-width: 1120px;
+    margin: 0 auto;
+    height: 64px;
+    padding: 0 clamp(16px, 4vw, 48px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.of-header__logo {
+    display: inline-flex;
+    align-items: center;
+}
+
+.of-header__nav {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.of-header__link {
+    font-size: 14px;
+    font-weight: 500;
+    color: #555;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.of-header__link:hover { color: #4CAF50; }
+
+.of-header__phone {
+    font-size: 14px;
+    font-weight: 700;
+    color: #333;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.of-header__phone:hover {
+    color: #4CAF50;
+}
+
+.of-header__cta {
+    background: #4CAF50;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    border-radius: 10px;
+    padding: 10px 22px;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background .2s;
+}
+
+.of-header__cta:hover { background: #43a047; }
+
+@media (max-width: 600px) {
+    .of-header__nav { gap: 14px; }
+    .of-header__link,
+    .of-header__phone { display: none; }
+}
+
+/* --- Экраны --- */
+.of-screen {
+    display: none;
+    flex-direction: column;
+}
+
+.of-screen.is-active {
+    display: flex;
+}
+
+/* --- Анимация входа: элементы первого экрана плавно выплывают сверху вниз --- */
+@keyframes of-fade-down {
+    from { opacity: 0; transform: translateY(-14px); }
+    to   { opacity: 1; transform: none; }
+}
+
+.of-screen[data-screen="menu"] .of-body > * {
+    animation: of-fade-down .5s ease both;
+}
+.of-screen[data-screen="menu"] .of-body > *:nth-child(1) { animation-delay: .04s; }
+.of-screen[data-screen="menu"] .of-body > *:nth-child(2) { animation-delay: .12s; }
+.of-screen[data-screen="menu"] .of-body > *:nth-child(3) { animation-delay: .20s; }
+.of-screen[data-screen="menu"] .of-body > *:nth-child(4) { animation-delay: .28s; }
+
+/* карточки планов — лёгкий каскад вслед за блоками */
+.of-screen[data-screen="menu"] .of-plan {
+    animation: of-fade-down .5s ease both;
+}
+.of-screen[data-screen="menu"] .of-plan:nth-child(1) { animation-delay: .30s; }
+.of-screen[data-screen="menu"] .of-plan:nth-child(2) { animation-delay: .38s; }
+.of-screen[data-screen="menu"] .of-plan:nth-child(3) { animation-delay: .46s; }
+.of-screen[data-screen="menu"] .of-plan:nth-child(4) { animation-delay: .54s; }
+
+/* Верхняя полоса экрана (заголовок / назад) */
+.of-topbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px 8px;
+    background: var(--of-bg);
+}
+
+.of-topbar__title {
+    flex: 1;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--of-ink);
+    line-height: 1.3;
+}
+
+.of-back {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    flex-shrink: 0;
+    border-radius: 50%;
+    color: #333;
+}
+
+/* Крупный заголовок экрана (слева, как в прототипе) */
+.of-head {
+    padding: 2px 2px 6px;
+}
+
+.of-head__title {
+    font-size: 21px;
+    font-weight: 800;
+    color: var(--of-ink);
+    line-height: 1.15;
+    margin: 0;
+}
+
+.of-head__sub {
+    font-size: 13px;
+    color: #666;
+    margin: 5px 0 0;
+}
+
+.of-textarea {
+    resize: vertical;
+    min-height: 44px;
+    font-family: inherit;
+}
+
+.of-back:hover {
+    background: rgba(0, 0, 0, .06);
+}
+
+/* центрирование заголовка при наличии кнопки назад слева */
+.of-back + .of-topbar__title {
+    margin-right: 32px;
+}
+
+/* Прокручиваемая область контента экрана */
+.of-body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 8px 14px 20px;
+}
+
+/* Колонки (side/main) держат вертикальный ритм между блоками и на мобайле —
+   иначе карточки (дропдаун/цена/кнопка) стоят вплотную без зазора («склейки») */
+.of-col {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* --- Hero (экран 1) --- */
+.of-hero {
+    text-align: center;
+    padding: 28px 0 8px;
+}
+
+.of-hero__title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--of-ink);
+    line-height: 1.25;
+    margin: 0 0 4px;
+}
+
+.of-hero__sub {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.4;
+    margin: 0;
+}
+
+.of-hero__badge {
+    display: inline-block;
+    background: #e8f5e9;
+    color: #2e7d32;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .3px;
+    padding: 5px 14px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+}
+
+/* разделитель в карточке плана — только десктоп (на мобайле карточка компактная) */
+.of-plan__hr {
+    display: none;
+}
+
+/* --- Баннер-оффер (5+N) --- */
+.of-offer {
+    background: linear-gradient(105deg, #5cb85c 0%, #7dc93a 100%);
+    border-radius: 14px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    box-shadow: 0 2px 12px rgba(100, 190, 50, .3);
+}
+
+.of-offer__title {
+    font-size: 14px;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.2;
+}
+
+.of-offer__sub {
+    font-size: 11px;
+    color: rgba(255, 255, 255, .85);
+    margin-top: 3px;
+    font-weight: 500;
+}
+
+.of-offer__badge {
+    background: rgba(255, 255, 255, .22);
+    color: #fff;
+    border-radius: 10px;
+    padding: 6px 12px;
+    flex-shrink: 0;
+    font-size: 18px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+/* --- Подпись секции --- */
+.of-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--of-muted);
+    letter-spacing: .8px;
+    text-transform: uppercase;
+    padding: 6px 2px 2px;
+}
+
+/* --- Список планов (мобайл): вертикальная колонка с отступами,
+   чтобы карточки и бейдж «Популярное» не наползали друг на друга --- */
+.of-plans {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    /* отступ под липкую шапку при переходе по якорю «Заказать»/«Меню» */
+    scroll-margin-top: 80px;
+}
+
+/* --- Карточка плана меню --- */
+.of-plan {
+    background: var(--of-card);
+    border: 2px solid transparent;
+    border-radius: var(--of-radius);
+    padding: 14px 16px;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: border-color .15s, box-shadow .15s, transform .15s;
+}
+
+.of-plan:hover {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .08);
+    transform: translateY(-2px);
+}
+
+.of-plan.is-selected {
+    border-color: var(--of-green);
+}
+
+/* популярный рацион — всегда в зелёной рамке (референс заказчика) */
+.of-plan--popular {
+    border-color: var(--of-green);
+}
+
+.of-plan__main {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.of-plan__title {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--of-ink);
+    line-height: 1.1;
+}
+
+.of-plan__unit { font-weight: 800; }
+
+.of-plan__price {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--of-ink);
+    white-space: nowrap;
+}
+
+.of-plan__perday {
+    font-size: 11px;
+    font-weight: 400;
+    color: #555;
+}
+
+.of-plan__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.of-plan__meta {
+    font-size: 12px;
+    color: var(--of-muted);
+}
+
+.of-plan__cta {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--of-green);
+    white-space: nowrap;
+}
+
+.of-plan__badge {
+    position: absolute;
+    top: -9px;
+    right: 14px;
+    background: var(--of-green);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+}
+
+/* --- Поля ввода --- */
+.of-input {
+    width: 100%;
+    background: var(--of-field);
+    border: 1.5px solid var(--of-field-bd);
+    border-radius: 12px;
+    padding: 13px 16px;
+    font-size: 16px;
+    color: var(--of-ink);
+    transition: border-color .15s;
+}
+
+.of-input:focus {
+    outline: none;
+    border-color: var(--of-green);
+}
+
+.of-hint {
+    font-size: 12px;
+    color: #aaa;
+}
+
+/* --- Карточка-секция --- */
+.of-card {
+    background: var(--of-card);
+    border-radius: var(--of-radius);
+    padding: 16px;
+}
+
+/* --- Кнопка действия --- */
+.of-btn {
+    display: block;
+    width: 100%;
+    background: var(--of-green);
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    border: none;
+    border-radius: 14px;
+    padding: 15px;
+    cursor: pointer;
+    letter-spacing: .5px;
+    transition: background .2s;
+}
+
+.of-btn:hover {
+    background: var(--of-green-d);
+}
+
+.of-btn:disabled {
+    opacity: .5;
+    cursor: default;
+}
+
+/* второстепенная кнопка (Настроить меню / Очистить) */
+.of-btn--ghost {
+    background: transparent;
+    color: var(--of-green);
+    border: 1.5px solid var(--of-green);
+}
+.of-btn--ghost:hover {
+    background: rgba(76, 175, 80, .08);
+}
+
+/* бейдж со счётчиком выбранных предпочтений */
+.of-prefs-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    margin-left: 8px;
+    padding: 0 6px;
+    background: var(--of-green);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    border-radius: 11px;
+    vertical-align: middle;
+}
+
+/* --- Экран «Настроить меню»: предпочтения / ограничения --- */
+.of-prefs {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.of-prefs__group {
+    background: var(--of-card);
+    border: 1px solid var(--of-field-bd);
+    border-radius: var(--of-radius);
+    overflow: hidden;
+}
+.of-prefs__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 15px 16px;
+    background: none;
+    border: none;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--of-ink);
+    cursor: pointer;
+    text-align: left;
+}
+.of-prefs__head svg {
+    transition: transform .2s;
+    flex-shrink: 0;
+}
+.of-prefs__group.is-open .of-prefs__head svg {
+    transform: rotate(180deg);
+}
+.of-prefs__body {
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    padding: 0 16px 14px;
+}
+.of-prefs__group.is-open .of-prefs__body {
+    display: flex;
+}
+.of-prefs__opt {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    font-size: 15px;
+    color: var(--of-ink);
+    cursor: pointer;
+}
+.of-prefs__opt input {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--of-green);
+    flex-shrink: 0;
+    cursor: pointer;
+}
+/* Живой предпросмотр предпочтений (ТЗ 5.1) */
+.of-prefs__preview {
+    margin-top: 14px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: #eef7ee;
+    color: #194536;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.of-prefs__actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+}
+.of-prefs__actions .of-btn {
+    margin-bottom: 0;
+}
+
+/* --- Выбор длительности --- */
+.of-durations {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+.of-duration {
+    background: var(--of-card);
+    border: 2px solid var(--of-field-bd);
+    border-radius: 14px;
+    padding: 12px 10px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    text-align: left;
+    transition: border-color .15s;
+}
+
+.of-duration.is-selected {
+    border-color: var(--of-green);
+    background: #f3f9f0;
+}
+
+.of-duration__days {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--of-ink);
+}
+
+.of-duration__gift {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--of-green);
+    background: var(--of-lime);
+    border-radius: 6px;
+    padding: 1px 6px;
+}
+
+.of-duration__price {
+    font-size: 12px;
+    color: #555;
+    margin-top: 2px;
+}
+
+/* --- Карточки меню (превью дня) --- */
+/* --- Стоимость (панель экрана 2) --- */
+.of-pricebox {
+    background: var(--of-card);
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.of-pricebox__lbl { font-size: 13px; color: var(--of-muted); }
+.of-pricebox__val { font-size: 20px; font-weight: 800; color: var(--of-ink); }
+
+/* --- Мобильная фикс-панель экрана «Меню»: цена/день + «Продолжить» --------
+   На мобайле длинный список блюд, поэтому стоимость и кнопка прибиты к низу
+   экрана. На десктопе (min-width: 900px) панель прячется — там цена и кнопка
+   живут в sticky-боковой колонке (правила ниже не трогаем). */
+.of-mbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 10px 14px calc(12px + env(safe-area-inset-bottom));
+    background: var(--of-card);
+    border-top: 1px solid #eee;
+    box-shadow: 0 -6px 20px rgba(0, 0, 0, .08);
+}
+/* цена — зелёная, по центру, одной строкой над кнопкой (как в прототипе) */
+.of-mbar__price {
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+    gap: 5px;
+    color: var(--of-green);
+    white-space: nowrap;
+}
+.of-mbar__val { font-size: 16px; font-weight: 800; }
+.of-mbar__lbl { font-size: 15px; font-weight: 600; }
+.of-mbar__btn { width: 100%; }
+
+/* на экране «Меню» in-flow цена и кнопка «Продолжить» дублируют фикс-панель —
+   на мобайле их прячем (кнопка «Настроить меню» остаётся в потоке) */
+.of-screen[data-screen="preview"] .of-pricebox,
+.of-screen[data-screen="preview"] .of-col--side > [data-next="delivery"] { display: none; }
+/* запас снизу, чтобы последняя карточка не пряталась под фикс-панелью */
+.of-screen[data-screen="preview"] .of-body { padding-bottom: 116px; position: relative; }
+
+.of-sticky-sentinel { display: none; }
+
+/* Авто-скрытие формы заказа на мобайле: форма закреплена сверху (sticky),
+   при скролле вниз уезжает вверх (не мешает смотреть блюда), при скролле вверх
+   выезжает обратно. Прячем только когда форма уже полностью прокручена за верх
+   (порог = её высота, JS) — тогда её слот за экраном и пустоты не остаётся. */
+@media (max-width: 899px) {
+    .of-screen[data-screen="preview"] .of-col--side {
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        background: var(--of-bg);
+        transition: transform .3s ease;
+        will-change: transform;
+    }
+    .of-screen[data-screen="preview"] .of-col--side.is-hidden {
+        transform: translateY(-110%);
+    }
+}
+
+/* --- Меню по дням (экран 2) --- */
+.of-days {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.of-day__title {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--of-ink);
+}
+
+.of-day__sum {
+    font-size: 12px;
+    color: var(--of-muted);
+    margin: 2px 0 10px;
+}
+
+.of-day__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.of-meal {
+    background: var(--of-card);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .06);
+    display: flex;
+    flex-direction: column;
+    /* без этого Swiper внутри grid/flex разрастается по ширине до бесконечности */
+    min-width: 0;
+}
+
+.of-meal__img {
+    width: 100%;
+    height: 110px;
+    object-fit: cover;
+    background: var(--of-field);
+}
+
+.of-meal__body { padding: 10px 12px; display: flex; flex-direction: column; flex: 1; }
+
+.of-meal__type {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--of-green);
+    text-transform: uppercase;
+    letter-spacing: .3px;
+}
+
+.of-meal__name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--of-ink);
+    line-height: 1.3;
+    margin-top: 4px;
+    margin-bottom: 8px;
+}
+
+/* Слайдер картинок блюда: ховер на десктопе, Swiper на мобиле.
+   Разметка/классы — как на основном лендинге (hover-slide.css + swiper). */
+.of-meal .hover-slide {
+    max-width: none;
+    margin-bottom: 0;
+    border: 0;
+    border-radius: 0;
+}
+.of-meal .hover-slide .thumbs { height: 110px; }
+.of-meal .hover-slide .thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.of-meal .meal-images-swiper {
+    width: 100%;
+    overflow: hidden;
+}
+.of-meal .meal-images-swiper,
+.of-meal .meal-images-swiper .swiper-slide { height: 110px; }
+.of-meal .meal-images-swiper .of-meal__img { width: 100%; height: 100%; }
+
+/* --- Нижняя зафиксированная полоса действия --- */
+.of-bar {
+    position: sticky;
+    bottom: 0;
+    background: var(--of-card);
+    padding: 10px 16px 18px;
+    border-top: 1px solid rgba(0, 0, 0, .07);
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, .05);
+}
+
+.of-bar__note {
+    text-align: center;
+    font-size: 13px;
+    color: var(--of-green);
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.of-btn--sm {
+    font-size: 15px;
+    border-radius: 12px;
+    padding: 14px;
+    letter-spacing: 0;
+    margin-top: 4px;
+}
+
+.of-input--sm {
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 14px;
+}
+
+.of-err {
+    font-size: 12px;
+    color: #e53935;
+    font-weight: 500;
+}
+
+.d-none { display: none !important; }
+
+/* ── Степпер (Экран 3) ── */
+.of-step {
+    background: var(--of-card);
+    border-radius: var(--of-radius);
+    overflow: hidden;
+}
+
+.of-step__head {
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.of-step__num {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.of-step.is-active .of-step__num { background: var(--of-green); }
+.of-step.is-done .of-step__num { background: var(--of-green); }
+.of-step.is-pending .of-step__num { background: #ddd; }
+
+.of-step__n {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.of-step.is-pending .of-step__n { color: #fff; }
+
+.of-step__check { display: none; }
+.of-step.is-done .of-step__check { display: block; }
+.of-step.is-done .of-step__n { display: none; }
+
+.of-step__title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #111;
+}
+
+.of-step.is-pending .of-step__title { color: #aaa; }
+
+.of-step__done-note {
+    font-size: 12px;
+    color: var(--of-green);
+}
+
+.of-step__body {
+    padding: 0 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    border-top: 1px solid #f5f5f5;
+    padding-top: 12px;
+}
+
+.of-step:not(.is-active) .of-step__body { display: none; }
+
+/* группы шага 3 (календарь / адрес) — вертикальный ритм и на мобайле */
+.of-dgroup {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* ── Дата + время ── */
+.of-daterow {
+    display: flex;
+    align-items: stretch;
+    border: 1.5px solid var(--of-field-bd);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.of-daterow__date {
+    flex: 1;
+    padding: 12px 14px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #111;
+    border: 0;
+}
+
+.of-daterow__sep { width: 1px; background: #eee; }
+
+.of-daterow__time {
+    flex: 1;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f9f9f9;
+    cursor: pointer;
+    font-size: 14px;
+    color: #555;
+    font-weight: 500;
+}
+
+.of-timedd {
+    border: 1.5px solid var(--of-field-bd);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.of-timedd__opt {
+    padding: 13px 16px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #555;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+}
+
+.of-timedd__opt + .of-timedd__opt { border-top: 1px solid #f0f0f0; }
+
+.of-timedd__opt.is-selected {
+    color: var(--of-green);
+    border-left-color: var(--of-green);
+    background: #f3f9f0;
+}
+
+/* ── Календарь ── */
+.of-cal__month {
+    text-align: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: #111;
+    margin: 6px 0 8px;
+}
+
+.of-cal__week {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 2px;
+}
+
+.of-cal__wd {
+    text-align: center;
+    font-size: 11px;
+    color: #aaa;
+}
+
+.of-cal__day {
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: #111;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    margin: 0 auto;
+    width: 34px;
+}
+
+.of-cal__day:hover { background: #eef6e9; }
+
+.of-cal__day.is-selected {
+    background: var(--of-green);
+    color: #fff;
+    font-weight: 700;
+}
+
+.of-cal__day.is-off {
+    color: #ccc;
+    cursor: default;
+}
+
+/* ── Адрес / зона ── */
+.of-addr {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.of-addr:first-of-type { grid-template-columns: 1fr 80px; }
+
+.of-zone {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--of-green);
+    background: #f3f9f0;
+    border-radius: 10px;
+    padding: 10px 12px;
+}
+
+.of-zone.is-bad { color: #e53935; background: #fdecea; }
+
+/* ── Экран 4: сводка ── */
+.of-summary {
+    background: var(--of-card);
+    border-radius: var(--of-radius);
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.of-summary__plan {
+    font-size: 16px;
+    font-weight: 700;
+    color: #111;
+    line-height: 1.3;
+}
+
+.of-summary__perday {
+    font-size: 18px;
+    font-weight: 800;
+    color: #111;
+}
+
+.of-summary__perday-lbl {
+    font-size: 13px;
+    color: var(--of-muted);
+}
+
+.of-dates { display: flex; flex-direction: column; gap: 14px; }
+
+.of-dates__row { display: flex; align-items: flex-start; gap: 12px; }
+
+.of-dates__ic {
+    width: 32px;
+    height: 32px;
+    background: #f0f0f0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.of-dates__ic--green { background: var(--of-green); }
+
+.of-dates__body { flex: 1; }
+
+.of-dates__line {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
+.of-dates__date { font-size: 16px; font-weight: 700; color: #111; }
+.of-dates__date--muted { color: #bbb; }
+.of-dates__total { font-size: 16px; font-weight: 700; color: #111; }
+
+.of-dates__note { font-size: 12px; color: #888; margin-top: 3px; }
+
+/* ── Оплата ── */
+.of-pay { display: flex; gap: 10px; }
+
+.of-pay__opt {
+    flex: 1;
+    background: var(--of-card);
+    border: 1.5px solid #e0e0e0;
+    border-radius: 14px;
+    padding: 14px 12px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #555;
+}
+
+.of-pay__opt.is-selected {
+    border: 2px solid var(--of-green);
+    color: var(--of-green);
+}
+
+.of-pay__kaspi { font-size: 14px; font-weight: 800; color: #ef3124; }
+.of-pay__hint { font-size: 11px; color: #888; font-weight: 500; }
+
+/* --- Дропдаун длительности (чекаут) --- */
+.of-dd { position: relative; }
+
+.of-dd__trigger {
+    width: 100%;
+    background: var(--of-card);
+    border: none;
+    border-radius: 14px 14px 0 0;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .08);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--of-ink);
+}
+
+.of-dd__menu {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 4px);
+    background: var(--of-card);
+    border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, .15);
+    overflow: hidden;
+    z-index: 20;
+}
+
+.of-dd__opt {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--of-ink);
+    border-left: 3px solid transparent;
+}
+
+.of-dd__price { font-size: 13px; font-weight: 600; color: var(--of-muted); }
+
+.of-dd__opt:hover { background: #f7f7f7; }
+
+.of-dd__opt.is-selected {
+    border-left-color: var(--of-green);
+    background: #f3f9f0;
+}
+
+.of-dd__gift { color: #e53935; font-size: 12px; font-weight: 600; }
+
+/* акцент подарочных дней в подписи длительности («+2 дня в подарок») */
+.of-gift-accent { color: #e53935; font-weight: 700; }
+
+/* --- Итог-блок (чекаут) --- */
+.of-total {
+    background: var(--of-card);
+    border-radius: var(--of-radius);
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.of-total__plan { font-size: 17px; font-weight: 800; color: var(--of-ink); }
+.of-total__plansub { font-size: 13px; color: var(--of-muted); margin-top: -6px; }
+.of-total__hr { height: 1px; background: #f0f0f0; margin: 4px 0; }
+
+.of-total__row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    color: #444;
+}
+
+/* Подарочные дни переехали в подзаголовок: в колонке сумм безразмерное «+14»
+   читалось как тенге и ломало сложение. Класс оставлен под скидку/акценты. */
+
+.of-total__sum {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--of-ink);
+    margin-top: 4px;
+}
+
+.of-total .of-btn { margin-top: 6px; }
+
+/* ============================================================
+   ДЕСКТОП (≥900px) — широкий лейаут по десктоп-прототипу.
+   Мобайл-фёрст выше остаётся без изменений.
+   ============================================================ */
+@media (min-width: 900px) {
+    .of { max-width: 1120px; }
+
+    .of-topbar { padding: 30px 48px 4px; }
+    .of-topbar__title { font-size: 22px; }
+    /* на экране выбора меню верхний заголовок дублирует hero — на десктопе прячем */
+    .of-screen[data-screen="menu"] .of-topbar { display: none; }
+    .of-back { width: 40px; height: 40px; }
+
+    .of-body { padding: 36px 48px 56px; gap: 18px; }
+    .of-label { font-size: 14px; }
+
+    /* колонки-обёртки держат свой внутренний отступ */
+    .of-col { display: flex; flex-direction: column; gap: 12px; }
+
+    /* — Экран 1: крупный hero + вертикальные карточки в ряд — */
+    .of-hero { padding: 20px 0 22px; }
+    .of-hero__badge { font-size: 13px; padding: 6px 16px; margin-bottom: 16px; }
+    .of-hero__title { font-size: 44px; letter-spacing: -1px; line-height: 1.12; margin-bottom: 12px; }
+    .of-hero__sub { font-size: 18px; max-width: 580px; margin: 0 auto; }
+
+    .of-offer { padding: 22px 32px; border-radius: 20px; }
+    .of-offer__title { font-size: 20px; }
+    .of-offer__sub { font-size: 14px; margin-top: 5px; }
+    .of-offer__badge { font-size: 30px; padding: 10px 24px; border-radius: 16px; }
+
+    .of-plans {
+        display: grid;
+        /* Адаптивно под любое число рационов: при 4 планах на контейнере 1120px
+           получается 4 колонки (как раньше), при 3 — 3 колонки без пустой ячейки,
+           при 5+ — перенос. min 240px не даёт влезть 5-й колонке (вёрстка не ломается). */
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 18px;
+    }
+    .of-plan { padding: 28px 24px; border-radius: 20px; }
+    .of-plan__main { flex-direction: column; align-items: flex-start; gap: 14px; }
+    .of-plan__title { line-height: 1; }
+    .of-plan__num { display: block; font-size: 28px; font-weight: 800; }
+    .of-plan__unit { display: block; font-size: 14px; font-weight: 400; color: #888; margin-top: 4px; }
+    .of-plan__price { font-size: 22px; }
+    .of-plan__perday { display: block; font-size: 12px; color: #888; margin-top: 2px; }
+    .of-plan__hr { display: block; height: 1px; background: #f0f0f0; margin: 4px 0 0; }
+    .of-plan__foot { flex-direction: column; align-items: flex-start; gap: 8px; flex: 1; }
+    .of-plan__meta { font-size: 13px; }
+    .of-plan__cta { margin-top: auto; font-size: 14px; }
+    .of-plan__badge { font-size: 12px; top: -10px; }
+
+    /* — Экран 2: меню (слева, 2–3 кол.) + форма (справа, sticky 360px) — */
+    .of-cols--2 {
+        display: grid;
+        grid-template-columns: 1fr 360px;
+        gap: 40px;
+        align-items: start;
+    }
+    .of-cols--2 .of-col--main { grid-column: 1; grid-row: 1; }
+    .of-cols--2 .of-col--side { grid-column: 2; grid-row: 1; position: sticky; top: 84px; }
+    /* на десктопе фикс-панель не нужна: цена и «Продолжить» — в боковой колонке */
+    .of-mbar { display: none; }
+    .of-screen[data-screen="preview"] .of-pricebox { display: flex; }
+    .of-screen[data-screen="preview"] .of-col--side > [data-next="delivery"] { display: block; }
+    .of-screen[data-screen="preview"] .of-body { padding-bottom: 56px; }
+    .of-cols--2 .of-day__grid { grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .of-day__title { font-size: 18px; }
+    .of-meal__img { height: 130px; }
+    .of-meal .hover-slide .thumbs { height: 130px; }
+    .of-meal .meal-images-swiper,
+    .of-meal .meal-images-swiper .swiper-slide { height: 130px; }
+    .of-meal__type { font-size: 12px; }
+    .of-meal__name { font-size: 14px; }
+
+    /* — Экран 3: центральная колонка, шаг 3 — календарь | адрес — */
+    .of-screen[data-screen="delivery"] .of-body { max-width: 860px; margin: 0 auto; width: 100%; }
+    .of-step__title { font-size: 17px; }
+    .of-step__num { width: 34px; height: 34px; }
+    .of-step__n { font-size: 15px; }
+    .of-step3grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 28px;
+        align-items: start;
+    }
+    .of-dgroup { display: flex; flex-direction: column; gap: 8px; }
+    .of-daterow__date { font-size: 16px; }
+    .of-daterow__time { font-size: 15px; }
+    .of-cal__month { font-size: 16px; }
+    .of-cal__wd { font-size: 12px; }
+    .of-cal__day { font-size: 14px; height: 38px; width: 38px; }
+
+    /* — Экран 4: детали + sticky-оплата — */
+    .of-cols--co {
+        display: grid;
+        grid-template-columns: 1fr 380px;
+        gap: 40px;
+        align-items: start;
+    }
+    .of-cols--co .of-col--side { position: sticky; top: 84px; }
+    .of-dates__date { font-size: 17px; }
+    .of-dates__note { font-size: 13px; }
+    .of-pay__opt { font-size: 13px; }
+    .of-pay__kaspi { font-size: 15px; }
+    .of-total { padding: 22px; }
+    .of-total__plan { font-size: 18px; }
+    .of-total__sum { font-size: 22px; }
+
+    /* инпуты и кнопки крупнее на десктопе */
+    .of-input { font-size: 16px; padding: 15px 18px; }
+    .of-input--sm { font-size: 15px; padding: 13px 16px; }
+    .of-btn { font-size: 18px; padding: 17px; }
+    .of-hint { font-size: 13px; }
+
+    /* нижняя полоса действия по центру колонки */
+    .of-bar { padding: 16px 48px 30px; }
+    .of-bar__note { font-size: 15px; }
+    .of-bar .of-btn { max-width: 460px; margin: 0 auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .of-plan,
+    .of-btn {
+        transition: none;
+    }
+
+    .of-plan:hover {
+        transform: none;
+    }
+
+    .of-screen[data-screen="menu"] .of-body > *,
+    .of-screen[data-screen="menu"] .of-plan {
+        animation: none;
+    }
+}
+
+/* ============================================================
+   Замена блюд (кнопка в карточке + модалка выбора) — #10
+   ============================================================ */
+
+/* кнопка «Заменить» в карточке блюда */
+.of-meal__replace {
+    margin-top: auto;
+    width: 100%;
+    background: #f3f9f0;
+    color: var(--of-green);
+    border: 1px solid #d6ecd0;
+    border-radius: 9px;
+    padding: 7px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .15s;
+}
+.of-meal__replace:hover { background: #e7f4e1; }
+
+/* доплата за замены (экран 2, под ценой) */
+.of-subnote {
+    font-size: 13px;
+    font-weight: 600;
+    color: #e53935;
+    background: #fdecea;
+    border-radius: 10px;
+    padding: 8px 12px;
+}
+
+/* модалка */
+.of-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.of-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, .45);
+}
+
+.of-modal__sheet {
+    position: relative;
+    width: 100%;
+    max-width: 480px;
+    max-height: 85vh;
+    background: var(--of-card);
+    border-radius: 20px 20px 0 0;
+    display: flex;
+    flex-direction: column;
+    animation: of-sheet-up .25s ease;
+}
+
+@keyframes of-sheet-up {
+    from { transform: translateY(100%); }
+    to   { transform: none; }
+}
+
+.of-modal__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px 12px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.of-modal__title { font-size: 17px; font-weight: 800; color: var(--of-ink); }
+
+.of-modal__x {
+    border: none;
+    background: transparent;
+    font-size: 28px;
+    line-height: 1;
+    color: #999;
+    cursor: pointer;
+    padding: 0 4px;
+}
+
+.of-modal__body {
+    padding: 12px 16px 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* вариант замены */
+.of-rep {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    text-align: left;
+    background: var(--of-card);
+    border: 1.5px solid var(--of-field-bd);
+    border-radius: 14px;
+    padding: 10px;
+    cursor: pointer;
+    transition: border-color .15s, box-shadow .15s;
+}
+.of-rep:hover { border-color: var(--of-green); box-shadow: 0 3px 10px rgba(0, 0, 0, .06); }
+
+.of-rep__img {
+    width: 60px;
+    height: 60px;
+    border-radius: 10px;
+    object-fit: cover;
+    background: var(--of-field);
+    flex-shrink: 0;
+}
+
+.of-rep__body { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.of-rep__name { font-size: 14px; font-weight: 700; color: var(--of-ink); line-height: 1.25; }
+.of-rep__meta { font-size: 12px; color: var(--of-muted); }
+.of-rep__conflict { font-size: 11px; color: #e53935; font-weight: 600; margin-top: 2px; }
+
+.of-rep__price {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--of-green);
+    white-space: nowrap;
+    flex-shrink: 0;
+    align-self: center;
+}
+
+/* на десктопе модалка — по центру */
+@media (min-width: 900px) {
+    .of-modal { align-items: center; }
+    .of-modal__sheet { border-radius: 20px; max-height: 80vh; }
+    @keyframes of-sheet-up { from { transform: translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
+}
+
+/* ═══════════ Редизайн формы экрана меню (задачи 1–3, прототип) ═══════════ */
+/* Карточка формы */
+.of-fcard {
+    background: var(--of-card);
+    border: 1px solid var(--of-field-bd);
+    border-radius: 14px;
+    padding: 14px 16px;
+}
+.of-fcard__ic { color: var(--of-green); flex-shrink: 0; }
+
+/* Карточка длительности: триггер + свёрнутый тотал */
+.of-dd.of-fcard { padding: 0; overflow: visible; }
+.of-dd.of-fcard .of-dd__trigger {
+    display: flex; align-items: center; gap: 10px;
+    width: 100%; padding: 14px 16px; background: none; border: none;
+    font-size: 16px; font-weight: 800; color: var(--of-ink); cursor: pointer;
+}
+.of-dd.of-fcard .of-dd__label { flex: 1; text-align: left; }
+.of-fcard__total {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px; border-top: 1px solid #f0f0f0;
+    font-size: 14px; color: var(--of-muted);
+}
+.of-fcard__total-val { font-weight: 800; color: var(--of-ink); font-size: 15px; }
+
+/* Строка «дата+время | предпочтения» */
+.of-frow { display: flex; gap: 10px; align-items: stretch; }
+.of-datecard {
+    flex: 1; display: flex; align-items: center; gap: 8px;
+    text-align: left; cursor: pointer; min-width: 0;
+}
+.of-datecard__val {
+    flex: 1; min-width: 0;
+    display: flex; flex-direction: column; gap: 2px;
+    line-height: 1.25; text-align: left;
+}
+.of-datecard__date { font-size: 14px; font-weight: 700; color: var(--of-ink); }
+.of-datecard__time { font-size: 12px; font-weight: 600; color: var(--of-muted); white-space: nowrap; }
+.of-btn--pref {
+    flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px;
+    padding: 12px 16px; width: auto;
+}
+
+/* Поповер выбора даты/времени на экране меню */
+.of-menucal {
+    background: var(--of-card); border: 1px solid var(--of-field-bd);
+    border-radius: 14px; padding: 14px 16px;
+}
+.of-menucal__times { display: flex; gap: 8px; margin-bottom: 12px; }
+.of-menucal__time {
+    flex: 1; text-align: center; padding: 8px 6px; border-radius: 10px;
+    background: var(--of-field); font-size: 13px; font-weight: 700;
+    color: var(--of-muted); cursor: pointer; border: 1.5px solid transparent;
+}
+.of-menucal__time.is-selected { background: #eef6e9; color: var(--of-green-d); border-color: var(--of-green); }
+
+/* Иконка «блюдо заменено» (задача 5) */
+.of-meal__imgwrap { position: relative; }
+.of-meal__swapped {
+    position: absolute; top: 8px; right: 8px; z-index: 2;
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--of-green); display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,.2);
+}
+.of-meal--swapped { outline: 2px solid var(--of-green); outline-offset: -2px; }
+
+/* Кнопка «Выбрать» в модалке замены (задача 7) */
+.of-rep__right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+.of-rep__pick {
+    display: inline-block; padding: 6px 14px; border-radius: 8px;
+    background: var(--of-green); color: #fff; font-size: 13px; font-weight: 700; white-space: nowrap;
+}
+.of-rep:hover .of-rep__pick { background: var(--of-green-d); }
+
+/* Недоступная пара «рацион × период» в дропдауне длительности (нет цены в матрице) */
+.of-dd__opt.of-pair-off {
+    opacity: .4;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
+/* ── Промокод на чекауте (ТЗ 5.7) ── */
+.of-promo {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+}
+.of-promo__input {
+    flex: 1;
+    min-width: 0;
+    padding: 12px 14px;
+    border: 1px solid #e3e3e3;
+    border-radius: 12px;
+    font-size: 15px;
+    text-transform: uppercase;
+}
+.of-promo__input:focus {
+    outline: none;
+    border-color: var(--of-lime, #7bc043);
+}
+.of-promo__btn {
+    padding: 0 18px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--of-green, #3d8b2e);
+    color: #fff;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.of-promo__btn:disabled { opacity: .5; cursor: default; }
+.of-promo__remove {
+    padding: 0 14px;
+    border: 1px solid #e3e3e3;
+    border-radius: 12px;
+    background: #fff;
+    color: #999;
+    font-size: 16px;
+    cursor: pointer;
+}
+.of-promo__msg {
+    margin-top: 8px;
+    font-size: 14px;
+    font-weight: 600;
+}
+.of-promo__msg.is-ok { color: #2e9e2e; }
+.of-promo__msg.is-err { color: #d64545; }
+.of-total__row--discount span:last-child { color: #2e9e2e; }
+
+/* ═══ Дни доставки (ТЗ 5.2): дропдаун-карточка «В какие дни питаться?» (по прототипу) ═══ */
+
+/* Экран «Настроить меню»: дни слева, предпочтения справа (десктоп); мобайл — стопкой */
+.of-setupgrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+}
+
+.of-dayscard {
+    background: #fff;
+    border: 1px solid var(--of-field-bd);
+    border-radius: 16px;
+    align-self: start;
+}
+.of-dayscard__head {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 16px 18px;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    text-align: left;
+}
+.of-dayscard__headtxt { display: flex; flex-direction: column; gap: 2px; }
+.of-dayscard__title { font-size: 16px; font-weight: 800; color: var(--of-ink); }
+.of-dayscard__cur { font-size: 13px; color: var(--of-muted); }
+.of-dayscard__chev { color: #aaa; flex: none; transition: transform .2s; }
+.of-dayscard[data-collapsed="1"] .of-dayscard__chev { transform: rotate(-90deg); }
+.of-dayscard[data-collapsed="1"] .of-dayscard__body { display: none; }
+
+.of-dayscard__body { padding: 0 18px 16px; }
+
+/* Радио-строки пресетов (data-days-mode — тот же обработчик, что и раньше) */
+.of-dayopt {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 13px 0;
+    background: transparent;
+    border: 0;
+    border-top: 1px solid #eee;
+    cursor: pointer;
+    font-size: 15px;
+    color: var(--of-ink);
+    text-align: left;
+}
+.of-dayopt__radio {
+    flex: none;
+    width: 22px;
+    height: 22px;
+    border: 2px solid #cdd3cf;
+    border-radius: 50%;
+    position: relative;
+    transition: border-color .15s;
+}
+.of-dayopt.is-selected .of-dayopt__radio { border-color: var(--of-green); }
+.of-dayopt.is-selected .of-dayopt__radio::after {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    border-radius: 50%;
+    background: var(--of-green);
+}
+
+/* Чипы дней недели — пилюли (активные — зелёная обводка, неактивные — серые) */
+.of-weekdays {
+    display: flex;
+    gap: 6px;
+    margin-top: 12px;
+}
+.of-weekday {
+    flex: 1 1 0;
+    min-width: 0;
+    border: 1.5px solid #d7ddd8;
+    background: #fff;
+    border-radius: 10px;
+    padding: 9px 2px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #9aa0a6;
+    cursor: pointer;
+    transition: background .15s, color .15s, border-color .15s;
+}
+.of-weekday.is-on {
+    background: #f2fbdf;
+    border-color: var(--of-green);
+    color: #2f7d33;
+}
+
+@media (min-width: 900px) {
+    .of-setupgrid {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 24px;
+        align-items: start;
+    }
+}

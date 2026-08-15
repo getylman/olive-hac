@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 tools/assemble.py *)",
+      "Bash(python3 tools/validate.py *)",
+      "Bash(python3 tools/qa.py *)",
+      "Bash(python3 preview/render.py *)",
+      "Bash(./tools/olive.py list-tools *)",
+      "Bash(./tools/olive.py show *)",
+      "Bash(./tools/olive.py call landings *)",
+      "Bash(./tools/olive.py call landing_show *)",
+      "Bash(./tools/olive.py call meals *)",
+      "Bash(./tools/olive.py call overview *)",
+      "Bash(./tools/olive.py call orders_summary *)",
+      "Bash(./tools/olive.py call pricing_periods *)",
+      "Bash(./tools/olive.py call delivery_zones *)",
+      "Bash(./tools/olive.py call delivery_check *)"
+    ]
+  }
+}

@@ -1,0 +1,132 @@
+{
+  "meta": {
+    "title": "Готовое ПП-меню с доставкой по Алматы — O-live",
+    "theme": {
+      "primary": "#C4F139",
+      "primaryHover": "#D5FA6B",
+      "primaryDark": "#194536",
+      "ink": "#181717",
+      "bgSoft": "#F2F2F2",
+      "bgAccent": "#EAF3DF"
+    },
+    "overrides": [
+      {
+        "selector": ".sf-notice",
+        "style": "display:none"
+      },
+      {
+        "selector": "html",
+        "style": "--sf-notice-h:0px"
+      },
+      {
+        "selector": ".sf-header",
+        "style": "background:#fff;color:#194536"
+      },
+      {
+        "selector": "#orderFunnel",
+        "style": "--of-green:#194536;--of-green-d:#0f3527;--of-lime:#C4F139"
+      },
+      {
+        "selector": ".of-offer",
+        "style": "background:#194536"
+      },
+      {
+        "selector": ".of-dd__gift",
+        "style": "color:#194536"
+      },
+      {
+        "selector": ".of-gift-accent",
+        "style": "color:#194536"
+      }
+    ]
+  },
+  "sections": [
+    {
+      "type": "order_funnel",
+      "props": {
+        "hero_title": "Готовые рационы для снижения веса — с доставкой по Алматы",
+        "hero_sub": "ПП-меню 1 200–2 500 ккал: КБЖУ уже посчитаны, меню составляют нутрициологи. Выберите цель — остальное сделаем мы.",
+        "offer": {
+          "badge": "5 + 5 дней в подарок",
+          "title": "Плати за 5 дней — ешь 10",
+          "subtitle": "Каждый тариф удваивается: 5+5, 14+14, 30+30"
+        }
+      }
+    },
+    {
+      "type": "html",
+      "props": {
+        "content": "<style>\n:root{\n  --gs-sp-1:4px;--gs-sp-2:8px;--gs-sp-3:12px;--gs-sp-4:16px;--gs-sp-5:24px;\n  --gs-sp-6:32px;--gs-sp-7:48px;--gs-sp-8:64px;\n  --gs-r-btn:6px;--gs-r-input:10px;--gs-r-card:16px;--gs-r-big:18px;--gs-r-pill:999px;\n  --gs-sh-card:0 10px 30px rgba(0,0,0,.08);--gs-sh-bar:0 -4px 20px rgba(0,0,0,.12);\n  --gs-fs-hero:clamp(1.875rem,1rem + 3.6vw,3.375rem);\n  --gs-fs-h2:clamp(1.5625rem,1.1rem + 2vw,2.5rem);\n  --gs-fs-h3:1.3125rem;--gs-fs-lead:1.125rem;--gs-fs-body:1rem;--gs-fs-sm:.875rem;--gs-fs-xs:.75rem;\n  --gs-display:\"Loos Wide\",Arial,sans-serif;\n  --gs-text:\"Museo Sans Cyrl\",-apple-system,\"Segoe UI\",Roboto,Arial,sans-serif;\n}\n</style>\n<style>\n.gs-trust{background:var(--l-green-dark,#194536);padding:var(--gs-sp-5) 20px}\n.gs-trust__in{max-width:1120px;margin:0 auto;display:grid;grid-template-columns:repeat(2,1fr);\n  gap:var(--gs-sp-4) var(--gs-sp-4);align-items:center}\n.gs-trust__item{display:flex;align-items:center;justify-content:center;gap:10px;color:#fff;\n  text-align:center;font:500 var(--gs-fs-sm)/1.4 var(--gs-text)}\n.gs-trust__item b{color:var(--l-lime,#C4F139);font:700 var(--gs-fs-h3)/1 var(--gs-display);\n  font-variant-numeric:tabular-nums;white-space:nowrap}\n.gs-trust__item--stat{flex-direction:column;gap:var(--gs-sp-1)}\n.gs-trust__item--wide{grid-column:1/-1}\n.gs-trust__tel{display:inline-flex;align-items:center;min-height:44px;padding:0 var(--gs-sp-2);\n  color:#fff;text-decoration:underline;text-underline-offset:3px;\n  font:700 var(--gs-fs-sm)/1.4 var(--gs-text);font-variant-numeric:tabular-nums;white-space:nowrap}\n.gs-trust__tel:hover,.gs-trust__tel:focus{color:var(--l-lime,#C4F139)}\n@media (min-width:768px){\n  .gs-trust__in{display:flex;flex-wrap:wrap;justify-content:center;\n    gap:var(--gs-sp-4) var(--gs-sp-6)}\n  .gs-trust__item--stat{flex-direction:row;gap:10px}\n}\n</style>\n<section class=\"gs-trust\" aria-label=\"O-live в цифрах\">\n  <div class=\"gs-trust__in\">\n    <span class=\"gs-trust__item gs-trust__item--stat\"><b>717</b> клиентов в Алматы</span>\n    <span class=\"gs-trust__item gs-trust__item--stat\"><b>1 130</b> заказов</span>\n    <span class=\"gs-trust__item gs-trust__item--wide\">Оплата картой через Halyk Bank ePay</span>\n    <span class=\"gs-trust__item gs-trust__item--wide\"><a class=\"gs-trust__tel\" href=\"tel:+77008702626\" data-cta=\"trust-phone\">+7 700 870-26-26</a></span>\n  </div>\n</section>"
+      }
+    },
+    {
+      "type": "html",
+      "props": {
+        "content": "<style>\n.gs-stepsec{background:var(--l-bg-soft,#F2F2F2);padding:var(--gs-sp-7) 0}\n.gs-stepsec__head{max-width:1120px;margin:0 auto;padding:0 20px}\n.gs-steps{display:grid;gap:var(--gs-sp-3);max-width:1120px;margin:0 auto;padding:0 20px}\n@media (min-width:768px){.gs-steps{grid-template-columns:repeat(3,1fr)}}\n.gs-step{background:#fff;border-radius:var(--gs-r-card);box-shadow:var(--gs-sh-card);\n  padding:var(--gs-sp-5);display:flex;gap:var(--gs-sp-4);align-items:flex-start}\n.gs-step__n{flex:0 0 44px;height:44px;border-radius:50%;background:var(--l-lime,#C4F139);\n  color:var(--l-green-dark,#194536);display:flex;align-items:center;justify-content:center;\n  font:700 var(--gs-fs-h3)/1 var(--gs-display)}\n.gs-step h3{font:500 var(--gs-fs-h3)/1.15 var(--gs-display);color:var(--l-ink,#181717);\n  margin:0 0 var(--gs-sp-1);text-wrap:balance}\n.gs-step p{font:300 var(--gs-fs-body)/1.5 var(--gs-text);color:var(--l-muted,#5E5E5E);\n  margin:0;max-width:60ch}\n</style>\n<section class=\"gs-stepsec\">\n  <div class=\"gs-stepsec__head\"><h2 class=\"l-title\">Как это работает</h2></div>\n  <div class=\"gs-steps\">\n    <div class=\"gs-step\"><span class=\"gs-step__n\">1</span><div>\n      <h3>Выберите рацион и длительность</h3>\n      <p>1 200–2 500 ккал; каждый тариф от 5 дней удваивается: 5+5, 14+14, 30+30.</p>\n    </div></div>\n    <div class=\"gs-step\"><span class=\"gs-step__n\">2</span><div>\n      <h3>Подтвердите адрес и оплатите картой</h3>\n      <p>Есть зона бесплатной доставки, дальше от 600 до 2 100 ₸; оплата через Halyk Bank ePay.</p>\n    </div></div>\n    <div class=\"gs-step\"><span class=\"gs-step__n\">3</span><div>\n      <h3>Получайте готовую еду каждый день</h3>\n      <p>КБЖУ посчитаны, блюда можно заменять при оформлении.</p>\n    </div></div>\n  </div>\n</section>"
+      }
+    },
+    {
+      "type": "html",
+      "props": {
+        "content": "<style>\n.gs-dishes-sec{background:var(--l-bg-soft,#F2F2F2);padding:var(--gs-sp-7,48px) 0;overflow-x:hidden}\n.gs-dishes-sec__in{max-width:1120px;margin:0 auto;padding:0 20px}\n.gs-dishes-sec .gs-dishes__title{margin-bottom:var(--gs-sp-4,16px)}\n.gs-dishes__sub{margin:0 auto;max-width:56ch;text-align:center;color:var(--l-ink,#181717);font:500 var(--gs-fs-body,1rem)/1.5 var(--gs-text,\"Museo Sans Cyrl\",-apple-system,\"Segoe UI\",Roboto,Arial,sans-serif)}\n.gs-dishes__hint{margin:var(--gs-sp-3,12px) 0 0;text-align:center;color:var(--l-muted,#5E5E5E);font:500 var(--gs-fs-sm,.875rem)/1.4 var(--gs-text,\"Museo Sans Cyrl\",-apple-system,\"Segoe UI\",Roboto,Arial,sans-serif)}\n.gs-dishes{display:grid;grid-auto-flow:column;grid-auto-columns:78%;gap:var(--gs-sp-3,12px);max-width:1120px;margin:var(--gs-sp-5,24px) auto 0;padding:4px 20px 16px;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory;scroll-padding-left:20px}\n@media (min-width:768px){.gs-dishes{grid-auto-columns:280px}}\n.gs-dish{scroll-snap-align:start;background:#fff;border-radius:var(--gs-r-card,16px);box-shadow:var(--gs-sh-card,0 10px 30px rgba(0,0,0,.08));display:flex;flex-direction:column;min-height:190px}\n.gs-dish__body{flex:1;display:flex;flex-direction:column;gap:var(--gs-sp-2,8px);padding:var(--gs-sp-4,16px)}\n.gs-dish__cat{align-self:flex-start;background:var(--l-bg-lime,#EAF3DF);color:var(--l-green-dark,#194536);border-radius:var(--gs-r-pill,999px);padding:4px 10px;text-transform:uppercase;letter-spacing:.04em;font:700 var(--gs-fs-xs,.75rem)/1.3 var(--gs-text,\"Museo Sans Cyrl\",-apple-system,\"Segoe UI\",Roboto,Arial,sans-serif)}\n.gs-dish__name{margin:0;color:var(--l-ink,#181717);font:500 var(--gs-fs-body,1rem)/1.3 var(--gs-text,\"Museo Sans Cyrl\",-apple-system,\"Segoe UI\",Roboto,Arial,sans-serif)}\n.gs-dish__kcal{margin-top:auto;color:var(--l-green-dark,#194536);font-variant-numeric:tabular-nums;font:700 var(--gs-fs-h3,1.3125rem)/1 var(--gs-display,\"Loos Wide\",Arial,sans-serif)}\n.gs-dish__kcal small{color:var(--l-muted,#5E5E5E);font:500 var(--gs-fs-sm,.875rem)/1 var(--gs-text,\"Museo Sans Cyrl\",-apple-system,\"Segoe UI\",Roboto,Arial,sans-serif)}\n.gs-dish__macros{display:flex;flex-wrap:wrap;gap:var(--gs-sp-2,8px);margin:0;padding:var(--gs-sp-3,12px) 0 0;list-style:none;border-top:1px solid #E6E6E6}\n.gs-dish__macros li{background:var(--l-bg-soft,#F2F2F2);border-radius:var(--gs-r-pill,999px);padding:4px 10px;color:var(--l-ink,#181717);font-variant-numeric:tabular-nums;font:500 var(--gs-fs-sm,.875rem)/1.3 var(--gs-text,\"Museo Sans Cyrl\",-apple-system,\"Segoe UI\",Roboto,Arial,sans-serif)}\n.gs-dishes__foot{display:flex;justify-content:center;max-width:1120px;margin:var(--gs-sp-5,24px) auto 0;padding:0 20px}\n.gs-dishes__cta{display:inline-flex;align-items:center;justify-content:center;min-height:56px;padding:14px 32px;background:#fff;color:var(--l-green-dark,#194536);border:2px solid var(--l-green-dark,#194536);border-radius:var(--gs-r-pill,999px);text-decoration:none;transition:background .2s ease,color .2s ease;font:500 var(--gs-fs-lead,1.125rem)/1.05 var(--gs-text,\"Museo Sans Cyrl\",-apple-system,\"Segoe UI\",Roboto,Arial,sans-serif)}\n.gs-dishes__cta:hover,.gs-dishes__cta:focus-visible{background:var(--l-green-dark,#194536);color:#fff}\n@media (max-width:560px){.gs-dishes__cta{width:100%}}\n@media (prefers-reduced-motion:reduce){.gs-dishes__cta{transition:none}}\n</style>\n<section class=\"gs-dishes-sec\">\n  <div class=\"gs-dishes-sec__in\">\n    <h2 class=\"l-title gs-dishes__title\">Что внутри рациона</h2>\n    <p class=\"gs-dishes__sub\">Реальные блюда из меню O-live — вес и КБЖУ как в рационе. Все шесть входят в планы 1&nbsp;200 и 1&nbsp;500 ккал.</p>\n    <p class=\"gs-dishes__hint\">6 из 297 блюд меню — листайте вбок →</p>\n  </div>\n  <div class=\"gs-dishes\" role=\"region\" aria-label=\"Примеры блюд из меню\" tabindex=\"0\">\n    <article class=\"gs-dish\"><div class=\"gs-dish__body\">\n      <span class=\"gs-dish__cat\">Завтрак</span>\n      <h3 class=\"gs-dish__name\">Скрембл с индейкой</h3>\n      <div class=\"gs-dish__kcal\">355 ккал <small>· 220 г</small></div>\n      <ul class=\"gs-dish__macros\"><li>Б 28</li><li>Ж 24</li><li>У 6</li></ul>\n    </div></article>\n    <article class=\"gs-dish\"><div class=\"gs-dish__body\">\n      <span class=\"gs-dish__cat\">Завтрак</span>\n      <h3 class=\"gs-dish__name\">Сырники с чиа</h3>\n      <div class=\"gs-dish__kcal\">391 ккал <small>· 185 г</small></div>\n      <ul class=\"gs-dish__macros\"><li>Б 20</li><li>Ж 18</li><li>У 37</li></ul>\n    </div></article>\n    <article class=\"gs-dish\"><div class=\"gs-dish__body\">\n      <span class=\"gs-dish__cat\">Второе</span>\n      <h3 class=\"gs-dish__name\">Куриная грудка с кускусом ПП</h3>\n      <div class=\"gs-dish__kcal\">233 ккал <small>· 327 г</small></div>\n      <ul class=\"gs-dish__macros\"><li>Б 33</li><li>Ж 7</li><li>У 9</li></ul>\n    </div></article>\n    <article class=\"gs-dish\"><div class=\"gs-dish__body\">\n      <span class=\"gs-dish__cat\">Второе</span>\n      <h3 class=\"gs-dish__name\">Нежная семга с овощами гриль</h3>\n      <div class=\"gs-dish__kcal\">376 ккал <small>· 305 г</small></div>\n      <ul class=\"gs-dish__macros\"><li>Б 25</li><li>Ж 25</li><li>У 11</li></ul>\n    </div></article>\n    <article class=\"gs-dish\"><div class=\"gs-dish__body\">\n      <span class=\"gs-dish__cat\">Суп</span>\n      <h3 class=\"gs-dish__name\">Суп Минестроне</h3>\n      <div class=\"gs-dish__kcal\">246 ккал <small>· 277 г</small></div>\n      <ul class=\"gs-dish__macros\"><li>Б 17</li><li>Ж 9</li><li>У 24</li></ul>\n    </div></article>\n    <article class=\"gs-dish\"><div class=\"gs-dish__body\">\n      <span class=\"gs-dish__cat\">Десерт</span>\n      <h3 class=\"gs-dish__name\">Брауни без сахара</h3>\n      <div class=\"gs-dish__kcal\">168 ккал <small>· 45 г</small></div>\n      <ul class=\"gs-dish__macros\"><li>Б 9</li><li>Ж 10</li><li>У 11</li></ul>\n    </div></article>\n  </div>\n  <div class=\"gs-dishes__foot\">\n    <a class=\"gs-dishes__cta\" href=\"#orderFunnel\" data-cta=\"dishes-order\">Собрать рацион</a>\n  </div>\n</section>\n"
+      }
+    },
+    {
+      "type": "home_advantages",
+      "props": {}
+    },
+    {
+      "type": "html",
+      "props": {
+        "content": "<style>\n.gs-qual{background:var(--l-bg-soft,#F2F2F2);padding:var(--gs-sp-7,48px) 20px}\n.gs-qual__in{max-width:1120px;margin:0 auto}\n.gs-qual__h{margin:0 0 var(--gs-sp-5,24px);color:var(--l-green-dark,#194536);\n  font:700 var(--gs-fs-h2,1.5625rem)/1.15 var(--gs-display,\"Loos Wide\",Arial,sans-serif)}\n.gs-qual__grid{display:grid;grid-template-columns:1fr;gap:var(--gs-sp-3,12px)}\n.gs-qual__card{background:#fff;border-radius:var(--gs-r-card,16px);\n  padding:var(--gs-sp-4,16px) var(--gs-sp-4,16px) var(--gs-sp-5,24px)}\n.gs-qual__tag{display:inline-block;margin:0 0 var(--gs-sp-2,8px);padding:4px 10px;\n  border-radius:var(--gs-r-pill,999px);background:var(--l-bg-lime,#EAF3DF);\n  color:var(--l-green-dark,#194536);\n  font:700 var(--gs-fs-xs,.75rem)/1.4 var(--gs-text,\"Museo Sans Cyrl\",Arial,sans-serif);\n  letter-spacing:.02em;text-transform:uppercase}\n.gs-qual__t{margin:0 0 var(--gs-sp-1,4px);color:var(--l-green-dark,#194536);\n  font:700 var(--gs-fs-h3,1.3125rem)/1.25 var(--gs-display,\"Loos Wide\",Arial,sans-serif)}\n.gs-qual__p{margin:0;color:var(--l-ink,#181717);\n  font:400 var(--gs-fs-body,1rem)/1.5 var(--gs-text,\"Museo Sans Cyrl\",Arial,sans-serif)}\n@media (min-width:600px){.gs-qual__grid{grid-template-columns:repeat(2,1fr);gap:var(--gs-sp-4,16px)}}\n</style>\n<section class=\"gs-qual\" aria-labelledby=\"gsQualH\">\n  <div class=\"gs-qual__in\">\n    <h2 class=\"gs-qual__h\" id=\"gsQualH\">Качество и безопасность</h2>\n    <div class=\"gs-qual__grid\">\n      <div class=\"gs-qual__card\">\n        <span class=\"gs-qual__tag\">ISO 22000 и Халал</span>\n        <p class=\"gs-qual__t\">Сертифицированное производство в Алматы</p>\n        <p class=\"gs-qual__p\">Блюда готовятся на собственном производстве, оснащённом по международным стандартам.</p>\n      </div>\n      <div class=\"gs-qual__card\">\n        <span class=\"gs-qual__tag\">Без консервантов</span>\n        <p class=\"gs-qual__t\">Cook &amp; Chill и упаковка MAP</p>\n        <p class=\"gs-qual__p\">Газомодифицированная среда сохраняет свежесть, вкус и пользу без консервантов.</p>\n      </div>\n      <div class=\"gs-qual__card\">\n        <span class=\"gs-qual__tag\">Лабораторный контроль</span>\n        <p class=\"gs-qual__t\">Независимые лаборатории</p>\n        <p class=\"gs-qual__p\">Образцы продукции регулярно отправляются на проверку.</p>\n      </div>\n      <div class=\"gs-qual__card\">\n        <span class=\"gs-qual__tag\">КБЖУ под цель</span>\n        <p class=\"gs-qual__t\">Нутрициологи и технологи</p>\n        <p class=\"gs-qual__p\">Меню и расчёт калорийности составляют нутрициологи и технологи.</p>\n      </div>\n    </div>\n  </div>\n</section>"
+      }
+    },
+    {
+      "type": "faq",
+      "props": {
+        "heading": "Вопросы и ответы",
+        "items": [
+          {
+            "q": "Как работают дни в подарок?",
+            "a": "Каждый многодневный тариф удваивается: оплачиваете 5 дней — получаете 10, оплачиваете 14 — получаете 28, оплачиваете 30 — получаете 60. Подарочные дни включаются автоматически, промокод не нужен."
+          },
+          {
+            "q": "Сколько стоит доставка?",
+            "a": "В Алматы есть зона бесплатной доставки; в остальных зонах — от 600 до 2 100 ₸. Точную стоимость по вашему адресу покажем сразу при оформлении заказа."
+          },
+          {
+            "q": "Как проходит оплата?",
+            "a": "Банковской картой онлайн: платёж обрабатывает процессинг Halyk Bank (ePay). Телефон подтверждается SMS-кодом, состав и сумма заказа видны до оплаты."
+          },
+          {
+            "q": "Какие рационы есть?",
+            "a": "Четыре плана: 1 200 и 1 500 ккал (4 блюда в день), 1 800 ккал (5 блюд) и 2 500 ккал (6 блюд). Всего в меню 297 блюд, КБЖУ рассчитаны для каждого."
+          },
+          {
+            "q": "Как вы следите за качеством?",
+            "a": "Блюда готовятся на собственном производстве в Алматы; продукция регулярно проверяется в независимых лабораториях, на всех этапах работает холодная цепь хранения."
+          },
+          {
+            "q": "Можно ли заменить блюдо?",
+            "a": "Да, замена блюд доступна прямо при оформлении заказа — в меню на каждый день."
+          }
+        ]
+      }
+    },
+    {
+      "type": "cta",
+      "props": {
+        "heading": "Готовы попробовать?",
+        "subheading": "5 дней питания + 5 в подарок — от 5 000 ₸ в день",
+        "cta_text": "Собрать рацион",
+        "cta_href": "#orderFunnel"
+      }
+    },
+    {
+      "type": "html",
+      "props": {
+        "content": "<style>\n.gs-orderbar{position:fixed;left:0;right:0;bottom:0;z-index:900;background:#fff;\nbox-shadow:var(--gs-sh-bar,0 -4px 20px rgba(0,0,0,.12));\npadding:10px 16px calc(10px + env(safe-area-inset-bottom));\ndisplay:flex;align-items:center;gap:var(--gs-sp-3,12px);\ntransition:transform .25s ease}\n.gs-orderbar--hidden{transform:translateY(110%)}\n.gs-orderbar__offer{flex:0 0 auto;font:700 var(--gs-fs-xs,.75rem)/1.3 var(--gs-text,\"Museo Sans Cyrl\",-apple-system,\"Segoe UI\",Roboto,Arial,sans-serif);color:var(--l-green-dark,#194536);text-transform:uppercase;letter-spacing:.04em}\n.gs-orderbar__btn{flex:1;display:flex;justify-content:center;align-items:center;min-height:56px;padding:8px 16px;background:var(--l-lime,#C4F139);color:var(--l-green-dark,#194536);border-radius:var(--gs-r-btn,6px);font:500 1.125rem/1.05 var(--gs-text,\"Museo Sans Cyrl\",-apple-system,\"Segoe UI\",Roboto,Arial,sans-serif);text-align:center;text-decoration:none}\n.gs-orderbar__btn:hover,.gs-orderbar__btn:focus{background:var(--l-lime-hover,#D5FA6B);color:#0A1C14;text-decoration:none}\n@media (min-width:768px){.gs-orderbar{display:none}}\n@media (prefers-reduced-motion:reduce){.gs-orderbar{transition:none}}\nbody{scroll-padding-bottom:90px}\n</style>\n<nav class=\"gs-orderbar\" aria-label=\"Заказ\">\n<span class=\"gs-orderbar__offer\">5 + 5 дней<br>в подарок</span>\n<a class=\"gs-orderbar__btn\" href=\"#orderFunnel\" data-cta=\"orderbar\">Собрать рацион</a>\n</nav>\n<script>\n(function(){\n  var bar=document.querySelector('.gs-orderbar');\n  var f=document.getElementById('orderFunnel');\n  if(!bar||!f||!('IntersectionObserver' in window))return;\n  new IntersectionObserver(function(es){\n    bar.classList.toggle('gs-orderbar--hidden',es[0].isIntersecting);\n  }).observe(f);\n})();\n</script>"
+      }
+    }
+  ]
+}

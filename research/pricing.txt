@@ -1,0 +1,1 @@
+{"data":[{"id":1,"days":1,"gift_days":0,"is_active":true},{"id":2,"days":5,"gift_days":5,"is_active":true},{"id":3,"days":14,"gift_days":14,"is_active":true},{"id":4,"days":30,"gift_days":30,"is_active":true}]}
