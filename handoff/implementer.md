@@ -16,13 +16,14 @@ Record gotchas that cost you time — that is what this file is for.
 | `landing/sections/20-trust.json` | `gs-` design tokens (defined **once page-wide**) + trust strip |
 | `landing/sections/30-steps.json` | «Как это работает», 3 steps |
 | `landing/sections/40-dishes.json` | 6 real dishes, snap-scroll row |
-| `landing/sections/50-advantages.json` | `home_advantages` (no props) |
+| `landing/sections/50-advantages.json` | `gs-adv` html block (v5: replaced `home_advantages`, which prints «400+ блюд») |
 | `landing/sections/55-quality.json` | `gs-qual` — replaced dead `home_quality` |
 | `landing/sections/60-faq.json` | 6 objection-handling Q&A |
 | `landing/sections/70-cta.json` | final `cta` |
 | `landing/sections/80-orderbar.json` | sticky bottom bar |
 | `landing/meta/meta.json` | title + 6 theme tokens |
-| `landing/meta/overrides.json` | 7 override rules |
+| `landing/meta/overrides.json` | 3 override rules (v5: #sfOrderBtn attrs · prefs text · 14-day addClass) |
+| `landing/sections/08-tapfix.json` | band `gs-tapfix` (v5): scroll-margin-top + calendar 44px tap targets |
 
 Then: `python3 tools/assemble.py` → `tools/validate.py` → `tools/qa.py <version_id>`.
 
@@ -345,3 +346,66 @@ Still say «заказов», never «выполненных»: 489 of 1 137 are
 - Re-verified this round: cheapest plan's 14/30-day `perDay` is **5 000** (`window.OLIVE_PRICING`
   plan 5, periods 3–4), so «от 5 000 ₸/день» in the orderbar is true; all six dish cards in
   `40-dishes.json` still match the live `meals` payload verbatim (name/mass/kcal/Б-Ж-У).
+
+## Round 3 — «v5 checkout fixes», draft **1202** (2026-08-16, orchestrator + 3 Opus implementers)
+
+Shipped against JOURNEY_AUDIT §8. Draft id **1202** (`?v=1202`), qa.py: **42 PASS / 0 FAIL /
+2 warns** (both by design, see below). validate: 0 errors, 7 warnings, exit 0. NOT activated.
+
+What landed (marker-verified on the server render `research/preview-v1202.html`):
+
+- **Default duration 30 → 14**: `overrides.json` rule 3
+  `{"[data-duration][data-days=\"14\"]" addClass "is-selected"}`. Mechanics: static markup
+  still ships `is-selected` on the 30-day option (:526) — that is EXPECTED. The override adds
+  the class to option 14 (:521, earlier in DOM) at DOMContentLoaded; `ensurePeriod` (js:309)
+  takes the FIRST `.is-selected` in DOM order → 14; `applyPeriod` strips the rest. The funnel
+  JS is parser-blocking (:1614) and the applier runs at DCL (:1714), while `ensurePeriod`
+  fires only on a user tap — timing is safe. **Browser-verify on a device before activation**
+  (curl cannot show a client-side class).
+- **Price step + honest delivery copy**: 30-steps step 2 now carries «Полный тариф 14 дней —
+  от 140 000 ₸ (на рационе 1 200 ккал): это 28 дней еды, по 5 000 ₸ в день» + delivery
+  «от 600 до 2 100 ₸ за каждый день доставки … покажем до оплаты». FAQ delivery answer
+  matches. Numbers re-verified this round: OLIVE_PRICING plan 5 period 3 = 140000/14/5000;
+  MCP delivery_zones = free + 600/1100/1600/2100.
+- **FAQ SMS → WhatsApp** («кодом в WhatsApp»; funnel hint :833 says WhatsApp; zero «SMS» on
+  the page now).
+- **T1 palliative**: 09-pseudo new rule `#orderFunnel [data-step="2"] .of-step__body::after`
+  «Код не пришёл? Напишите нам в WhatsApp: +7 700 870-26-26» (number = footer wa.me + trust).
+- **08-tapfix band** (new): `#orderFunnel{scroll-margin-top:64px}` (scrollIntoView vs fixed
+  header) + `#orderFunnel .of-cal__day{width:44px;max-width:100%;height:44px}` (was 34px).
+- **gs-adv** replaced `home_advantages` (50-advantages.json): 297 блюд / 4 рациона /
+  delivery slots 6:00–9:00 & 20:00–22:00 / персонализация до 3 предпочтений — all verbatim
+  from verified data. The false «400+ блюд» is gone from the page.
+- **Trust counters rounded down**: 700+ / 1 100+ (live at save time: 725 / 1142 — rounding is
+  from real, freeze-safe).
+- **qa.py FORBIDDEN** += «400+ блюд». **BUGS.md** new section C (C1 no resend/change-phone —
+  regression vs 871's own form; C2 no `.catch` on send/verify/check-zone rejections only —
+  5xx/bad JSON ARE survivable, `post()` js:128-144 resolves them; C3 money decisions carry no
+  `data-cta`).
+
+### Gotchas new this round
+
+- **`assemble.py` warns `duplicate prefix 08` (08-prefs + 08-tapfix)** — expected, order is by
+  full name and is the intended one. There is no free 2-digit slot between 08 and 09.
+- **validate warning count is now 7**, all benign: overrides[1] funnel selector (permanent),
+  sf/of-restyle warns on 05, 06, 07, 08-tapfix, 09, and the orderbar `<script>` advisory.
+  Earlier notes claiming 06 and 09 «don't trip the regex» are WRONG/stale: 06 always matched
+  (15 bare `.of-*{` rule heads after the `#orderFunnel ` prefix), and 09 now matches via a
+  *comment* whose prose wraps as `.of-step__body\n   {display:none}` — `\s*` spans the
+  newline. Comment text can trip the warn regex; don't chase ghosts.
+- **qa.py permanently warns customers/orders «stale»** after the 700+/1 100+ rounding (it
+  greps whole tokens, `700` ≠ live `725`). By design — understating is freeze-safe. Do NOT
+  «fix» it by restoring exact figures. The `+` also keeps the stale-adjacency regex silent.
+- **The `content:`-outside-09 gate now has comment false-positives**: prose «No content: …» in
+  06 and 08-tapfix comments. Count actual declarations (strict scan minus comments): 9, all
+  in 09-pseudo.
+- 08-tapfix's unconditional 44px **also overrides the desktop calendar twin**
+  (order-funnel.css:1273, 38px @≥900px) — deliberate; 44px is fine there. Same media-query
+  specificity class as WP-R1 T3.
+- `40-dishes.json` `.gs-dish__kcal` declares `font-variant-numeric` BEFORE the `font:`
+  shorthand → the shorthand resets it (dead tabular-nums). Not fixed this round (not our
+  file); one-line fix for its owner: move the shorthand first.
+- BUGS.md preamble still says «Two independent audits» and sections read A → C → B — cosmetic,
+  left for the register's owner.
+- Suggestion not acted on (out of scope): add `home_advantages` to qa.py `KNOWN_BAD` so nobody
+  re-adds the «400+ блюд» block; FORBIDDEN only catches it after a render.

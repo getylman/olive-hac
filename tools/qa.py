@@ -52,7 +52,7 @@ KNOWN_BAD = {
 }
 
 # Claims that must never appear — inflated or unverifiable.
-FORBIDDEN = ["400 блюд", "гарантируем", "гарантия результата", "похудеете на"]
+FORBIDDEN = ["400 блюд", "400+ блюд", "гарантируем", "гарантия результата", "похудеете на"]
 
 # A real attribute, not the bare substring: `[data-cta]{color:red}` in a stylesheet is
 # not instrumentation (B1). Both quote styles, value must be non-empty.

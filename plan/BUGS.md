@@ -72,6 +72,60 @@ by static analysis.
 
 ---
 
+## C. Funnel platform bugs — audit of v1134 (2026-08-16)
+
+Olive's own `order_funnel` block, audited against the v1134 render
+(`research/preview-v1134.html`), `research/order-funnel.css` and the live
+`order-funnel.js` (fetched from `olive.kz`; it is not in the repo). None of these is
+reachable from our config — they are reported upward.
+
+### C1 · P1 · «Код не пришёл» — тупик без выхода
+**Verified.** Once the WhatsApp code fails to arrive the funnel offers no way forward: `order-funnel.js`
+has **zero** resend / change-number controls (`grep -ci resend` → 0; the file's only
+«повторно» is an unrelated comment at :506) and the render contains none either
+(`resendCodeBtn|codeTimer|Отправить повторно|Изменить номер` → 0 hits in
+`preview-v1134.html`). At the same time `.of-step:not(.is-active) .of-step__body{display:none}`
+(`order-funnel.css:867`) collapses the phone step the moment the code is sent, so the number
+cannot even be re-read, let alone corrected. Olive's own live form on version 871 ships all
+three controls — `#codeTimer`, `#resendCodeBtn` («Отправить повторно»), `#changePhoneBtn`
+(«Изменить номер»), `research/gosura.html:1180-1184` — so this is a **regression of the funnel
+against Olive's native form**, not a missing nice-to-have. Every buyer who mistypes a digit or
+loses the WhatsApp message is lost at the last step before payment.
+**Report to Olive** — a button cannot be added from a landing config. Our palliative is the
+CSS hint with the WhatsApp contact in `09-pseudo.json`.
+
+### C2 · P1 · No `.catch` on send-code / verify-code / check-zone
+**Verified.** All three network steps follow the same shape — `btn.disabled = true;` then
+`post(…).then(…)` with **no** rejection branch: send-code `order-funnel.js:1100-1110`,
+verify-code `:1117-1126`, check-zone `:1205-1221`. The re-enable (`btn.disabled = false`) lives
+inside the `then` callback, so any *rejection* — a dropped connection, DNS failure, an aborted
+request: the mobile case — leaves the button **permanently disabled with no error message**, and
+the step cannot be retried without reloading the page. (A 5xx or unparseable JSON is survivable:
+`post()` (`:128-144`) resolves those — `r.json()` carries its own `.catch` at `:141` — so the
+`then` branch still re-enables the button and prints a message. The gap is the rejection path
+only, and that is the one a phone on a lift/metro hits.) The same file proves the fix is house
+style: «Оплатить» (`:1407`)
+and the preferences save (`:1072`) both re-enable their button and show a message from a
+`.catch`.
+**Report to Olive.** Not fixable from config: we may not add JS to the order scope, and CSS
+cannot re-enable a `disabled` button.
+
+### C3 · P2 · The money decisions are not instrumented
+**Verified (grep over the v1134 render).** The platform counts clicks only on `[data-cta]`, and
+that attribute is absent from every in-funnel decision point: duration dropdown
+(`[data-dd-toggle]`, 2 nodes), duration/period options (`[data-duration]`, 8; `[data-cday]`, 6),
+calendar days (`[data-cal-day]`, 96), delivery slots (`[data-time-opt]`, 2), promo apply
+(`[data-promo-apply]`, 1), back (`[data-back]`, 4) and dish replacement (`[data-replace]`, 6) —
+**0 of them carry `data-cta`**. The 14 instrumented CTAs are all outside these steps
+(`plan-*`, `menu-next`, `send-code`, `verify-code`, `check-zone`, `pay`, ours). So the exact
+choices that set the order value — period, gift days, delivery day/slot, promo — produce no
+analytics at all, and the funnel's own drop-off cannot be measured. We cannot patch it:
+`attrs` overrides are forbidden from setting `data-*` (`validate.py:163`), and the funnel scope
+rejects `html` overrides.
+**Report to Olive.**
+
+---
+
 ## B. Repo tooling
 
 ### B1 · P1 · `qa.py` `data-cta` check is a false pass
