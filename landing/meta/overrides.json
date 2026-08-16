@@ -1,9 +1,8 @@
 [
-  { "selector": ".sf-notice", "style": "display:none" },
-  { "selector": "html", "style": "--sf-notice-h:0px" },
-  { "selector": ".sf-header", "style": "background:#fff;color:#194536" },
-  { "selector": "#orderFunnel", "style": "--of-green:#194536;--of-green-d:#0f3527;--of-lime:#C4F139" },
-  { "selector": ".of-offer", "style": "background:#194536" },
-  { "selector": ".of-dd__gift", "style": "color:#194536" },
-  { "selector": ".of-gift-accent", "style": "color:#194536" }
+  {
+    "selector": "#sfOrderBtn",
+    "attrs": {
+      "href": "#orderFunnel"
+    }
+  }
 ]

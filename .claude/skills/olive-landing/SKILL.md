@@ -61,6 +61,17 @@ the saved old DOM, and one `<script>` advisory for the sticky order bar.
 - `meta.theme` compiles to `--l-*` variables *and* to `body .of { --of-* }`.
 - Custom CSS is `gs-`-scoped. Lime `#C4F139` never carries white text (1.31:1).
 
+## Handoffs — the project's memory between runs
+
+`handoff/design-auditor.md`, `handoff/architect.md`, `handoff/implementer.md` carry each role's
+living state: verified facts, decisions in force with their evidence, gotchas, and open
+questions. Each agent reads its own file first and updates it before finishing.
+
+When you work on the landing **without** delegating, you are standing in for those roles: read
+the relevant handoff first, and record anything durable you learn back into it. A fact that
+cost effort to establish and lives only in a transcript is lost. Keep them current — a stale
+handoff is worse than none, so delete what you disprove.
+
 ## For a larger redesign
 
 Use the agent pipeline instead of editing by hand — the definitions live in `.claude/agents/`:

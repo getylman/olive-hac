@@ -9,8 +9,9 @@ Checks (ground truth = research/BRIEF.md + the live block registry):
   * every override has a selector; only legal rule keys; attrs never set
     id / name / data-* / on*; `html` overrides never target the protected
     order-form scope (#order, #order-menu, #orderFunnel, .of, .sf-form)
-  * html blocks: no external CDN/script/font imports, no inline on* handlers,
-    no ids colliding with order machinery
+  * EVERY markup-bearing string prop (not just html.content — also text.body,
+    faq/testimonials/features items, …): no external CDN/script/font/image
+    imports, no inline on* handlers, no ids colliding with order machinery
 Exit code 0 = safe to save, 1 = errors (do not save).
 """
 import json
@@ -63,10 +64,20 @@ ORDER_IDS = {
     "orderBtn", "orderBtnPrice", "promoInput", "promoApplyBtn", "promoRemoveBtn",
     "formComment", "deliveryZoneStatus", "deliveryMap",
 }
+# "External" = absolute or protocol-relative. `//host/x` loads cross-origin just like
+# `https://host/x`, so both forms count. Media tags were missing entirely (B3): a page
+# could ship `<img src="https://…">` / `<iframe>` and validate clean.
 EXTERNAL_REF = re.compile(
-    r"(<script[^>]+src\s*=|<link[^>]+href\s*=\s*[\"']https?:|@import\s|@font-face|"
-    r"url\(\s*[\"']?https?:)", re.I)
-INLINE_HANDLER = re.compile(r"\son[a-z]+\s*=", re.I)
+    r"(<script[^>]+src\s*=|"
+    r"<link[^>]+href\s*=\s*[\"']?\s*(?:https?:|//)|"
+    r"<(?:img|iframe|source|video|audio|embed|object|track|input)\b[^>]*?"
+    r"(?:src|srcset|poster|data|href)\s*=\s*[\"']?\s*(?:https?:|//)|"
+    r"srcset\s*=\s*[\"'][^\"']*(?:https?:|//)|"
+    r"@import\s|@font-face|"
+    r"url\(\s*[\"']?\s*(?:https?:|//))", re.I)
+# Attributes may be separated by `/` as well as whitespace — `<div/onclick="…">` is valid
+# HTML and browsers execute it, but the old `\son…` form missed it (B3).
+INLINE_HANDLER = re.compile(r"[\s/]on[a-z]+\s*=", re.I)
 HEX = re.compile(r"^#[0-9A-Fa-f]{6}$")
 
 errors, warnings = [], []
@@ -193,20 +204,39 @@ def check_sections(sections):
             if p not in allowed:
                 err(f"{tag}: prop '{p}' is not registry-declared "
                     f"(allowed: {', '.join(allowed) or 'none'})")
-        if t == "html":
-            check_html_content(tag, props.get("content", ""))
+        if t == "html" and not (isinstance(props.get("content"), str)
+                                and props["content"].strip()):
+            err(f"{tag}: 'content' is required and must be non-empty HTML")
+        # B4: html.content is not the only prop emitted raw — text.body, faq/testimonials
+        # items and any other nested string carry markup too. Check every one of them.
+        for path, value in walk_strings(props):
+            check_markup(f"{tag} {path}", value)
 
 
-def check_html_content(tag, content):
+def walk_strings(value, path="props"):
+    """Yield (dotted-path, string) for every string anywhere in a props structure."""
+    if isinstance(value, str):
+        yield path, value
+    elif isinstance(value, dict):
+        for k, v in value.items():
+            yield from walk_strings(v, f"{path}.{k}")
+    elif isinstance(value, list):
+        for i, v in enumerate(value):
+            yield from walk_strings(v, f"{path}[{i}]")
+
+
+def check_markup(tag, content):
+    """Content-hygiene checks for any string the renderer may emit as raw markup."""
     if not (isinstance(content, str) and content.strip()):
-        err(f"{tag}: 'content' is required and must be non-empty HTML")
         return
     m = EXTERNAL_REF.search(content)
     if m:
         err(f"{tag}: external resource reference ({m.group(0).strip()!r}) — "
             "no CDNs, external scripts, or font imports (design system rule)")
-    if INLINE_HANDLER.search(content):
-        err(f"{tag}: inline on*= handler found — forbidden (carries logic; will be rejected)")
+    mh = INLINE_HANDLER.search(content)
+    if mh:
+        err(f"{tag}: inline handler {mh.group(0).strip()!r} found — forbidden "
+            "(carries logic; will be rejected)")
     for i in re.findall(r'id="([^"]+)"', content):
         if i in ORDER_IDS:
             err(f"{tag}: content declares id=\"{i}\" which collides with order machinery")

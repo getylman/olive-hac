@@ -1,0 +1,6 @@
+{
+  "type": "html",
+  "props": {
+    "content": "<style class=\"gs-fixes\">\n/* Fix round 1 (BUGS A2/A5): the 7 cosmetics below moved out of meta/overrides.json.\n   Overrides are a single client-side pass at DOMContentLoaded, so they flash\n   un-applied on slow mobile and never reach innerHTML-rebuilt nodes.\n   Rule order and selectors follow the specificity table in WP-F1. */\n/* 1 */ .sf-notice{display:none}\n/* 2 */ :root{--sf-notice-h:0px}\n/* 3 - P0 contrast fix: the template paints white text on lime (1.31:1).\n       .sf-header.scrolled is (0,2,0), so it is covered explicitly. */\n.sf-header,.sf-header.scrolled{background:#fff;color:#194536}\n/* 4 - ID-scoped: the funnel injects its CSS in-body, so ties are not safe */\n#orderFunnel{--of-green:#194536;--of-green-d:#0f3527;--of-lime:#C4F139}\n/* 5 - background shorthand, not background-color: it must clear the gradient */\n#orderFunnel .of-offer{background:#194536}\n/* 6 */ #orderFunnel .of-dd__gift{color:#194536}\n/* 7 - static CSS also reaches the nodes applyPeriod() rebuilds (the A2 fix) */\n#orderFunnel .of-gift-accent{color:#194536}\n</style>"
+  }
+}

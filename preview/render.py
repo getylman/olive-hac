@@ -9,7 +9,13 @@ every free-form block (hero/text/html/features/cta/testimonials/faq/lead_form)
 with the site's real l-* classes, and renders labelled PLACEHOLDER boxes for
 server-only blocks (order_*, home_*) that only exist server-side.
 meta.overrides are applied client-side by a small script that mirrors the
-server's rules (html never applied inside the protected order scope).
+server's rules (html never applied inside the protected order scope; text /
+style / addClass / attrs all supported, forbidden attrs skipped). Static
+`<style>` blocks inside an `html` section are emitted raw, exactly as the
+server does, so cosmetics baked into a section fragment apply at parse time
+here too. The script reports per-rule match counts, because a selector that
+only exists in the platform template (e.g. `#sfOrderBtn`) matches 0 nodes
+locally and can only be confirmed on the server render.
 """
 import html as H
 import json
@@ -175,12 +181,16 @@ PREVIEW_CSS = """
 .gsp-chrome b{color:#194536}
 .gsp-chip{position:fixed;right:8px;bottom:8px;z-index:9999;background:#181717;color:#fff;
   font:11px/1.2 ui-monospace,monospace;padding:4px 8px;border-radius:6px;opacity:.75}
+.gsp-ovr{position:fixed;left:8px;bottom:8px;right:8px;z-index:9998;background:#194536;color:#C4F139;
+  font:11px/1.3 ui-monospace,monospace;padding:4px 8px;border-radius:6px;opacity:.8;
+  max-width:calc(100% - 16px);overflow-x:auto;white-space:nowrap}
 """
 
 APPLY_OVERRIDES_JS = """
 (function(){
   var PROTECTED='#order,#order-menu,#orderFunnel,.of,.sf-form';
   var rules=window.__GSP_OVERRIDES||[];
+  var report=[];
   rules.forEach(function(r){
     var els;
     try{els=document.querySelectorAll(r.selector);}catch(e){console.warn('bad selector',r.selector);return;}
@@ -195,7 +205,18 @@ APPLY_OVERRIDES_JS = """
       }
       if(r.attrs){for(var a in r.attrs){if(/^(id|name|data-|on)/i.test(a)){console.warn('forbidden attr skipped:',a);continue;}el.setAttribute(a,r.attrs[a]);}}
     });
+    report.push({selector:r.selector,matched:els.length,
+                 keys:['text','html','style','addClass','attrs'].filter(function(k){return r[k]!==undefined;}).join('+')});
   });
+  console.log('overrides applied:',report);
+  var badge=document.createElement('div');
+  badge.className='gsp-ovr';
+  badge.textContent=report.length
+    ? 'overrides: '+report.map(function(x){return x.selector+' ['+x.keys+'] → '+x.matched+' node'+(x.matched===1?'':'s');}).join(' · ')
+    : 'overrides: none';
+  if(report.some(function(x){return x.matched===0;}))
+    badge.textContent+=' — 0 = template-only selector, confirm on the server render';
+  document.body.appendChild(badge);
 })();
 """
 
@@ -209,8 +230,12 @@ def build(config_path=None, out_path=None):
     overrides = meta.get("overrides") or []
     title = meta.get("title") or "gosura preview (no meta.title!)"
 
+    # '<' in a theme value would close the <style> element early, exactly as a
+    # literal '</script>' used to break the override payload (B8). CSS reads
+    # '\3c ' as '<', the HTML parser does not.
     theme_vars = "".join(
-        f"{THEME_TO_VAR[k]}:{v};" for k, v in theme.items() if k in THEME_TO_VAR)
+        f"{THEME_TO_VAR[k]}:{str(v).replace('<', chr(92) + '3c ')};"
+        for k, v in theme.items() if k in THEME_TO_VAR)
     theme_css = f":root{{{theme_vars}}}" if theme_vars else ""
 
     out_p.parent.mkdir(parents=True, exist_ok=True)
@@ -236,6 +261,12 @@ def build(config_path=None, out_path=None):
                 '</div></footer>')
     body.append('<div class="gsp-chip">preview · шрифты Loos Wide/Museo — fallback локально</div>')
 
+    # B8: a literal '</script>' (or '<!--') inside any override value would end
+    # the inline script early and corrupt the page. '<' can only occur inside a
+    # JSON string, so escaping it to \\u003c keeps the payload valid JSON and
+    # identical after JSON.parse, while leaving no '<' for the HTML parser.
+    overrides_json = json.dumps(overrides, ensure_ascii=False).replace("<", "\\u003c")
+
     doc = f"""<!doctype html>
 <html lang="ru"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -248,7 +279,7 @@ background:#fff;color:#181717}}
 h1,h2,h3,.l-title,.l-hero__title{{font-family:"Loos Wide",Arial,sans-serif}}</style>
 </head><body>
 {''.join(body)}
-<script>window.__GSP_OVERRIDES={json.dumps(overrides, ensure_ascii=False)};</script>
+<script>window.__GSP_OVERRIDES={overrides_json};</script>
 <script>{APPLY_OVERRIDES_JS}</script>
 </body></html>"""
     out_p.write_text(doc, encoding="utf-8")

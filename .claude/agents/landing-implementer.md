@@ -8,8 +8,10 @@ model: opus
 You implement **one** work package from `plan/WORK_PACKAGES.md`, completely and precisely.
 
 ## Always do this first
-Read in order: `research/BRIEF.md` (ground truth) → `design/DESIGN_SYSTEM.md` (what you build
-against) → `plan/ARCHITECTURE.md` (why) → your package in `plan/WORK_PACKAGES.md` (what).
+Read **`handoff/implementer.md`** — file ownership, the gotchas that have already cost time, and
+the truthfulness rules that have already caught mistakes. It will save you a debugging cycle.
+Then read in order: `research/BRIEF.md` (ground truth) → `design/DESIGN_SYSTEM.md` (what you
+build against) → `plan/ARCHITECTURE.md` (why) → your package in `plan/WORK_PACKAGES.md` (what).
 
 ## File ownership is absolute
 Write **only** the files your package lists. Other implementers run in parallel and own the
@@ -40,6 +42,13 @@ lets you, assemble a scratch config in the scratchpad and run `python3 tools/val
 it — but do not leave stray files in the repo.
 
 **Never** run `landing_activate` and **never** save with `--status active`.
+
+## Before you finish — update your handoff
+Append to **`handoff/implementer.md`** anything a future implementer would otherwise rediscover
+the hard way: a gotcha that cost you time, a file-ownership change, a platform behaviour that
+surprised you. Several implementers run in parallel and share this file, so **append or edit
+your own entry — never rewrite the whole file**, or you will clobber a sibling's notes. Update
+the `Last updated` line only if you changed something substantive.
 
 Report: files written, the real data you used and its source, and — importantly — anything you
 found that **contradicts the plan**. Flagging a wrong assumption is worth more than silently

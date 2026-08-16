@@ -14,6 +14,9 @@ fixed block registry over an MCP endpoint — there is no filesystem deploy.
 - `.claude/skills/olive-landing/SKILL.md` — the ship loop (assemble → validate → draft → QA).
 - `design/AUDIT.md`, `design/DESIGN_SYSTEM.md` — findings and the spec to build against.
 - `plan/ARCHITECTURE.md`, `plan/WORK_PACKAGES.md` — decisions and the build plan.
+- `handoff/*.md` — per-role living state (verified facts, decisions in force, gotchas, open
+  questions). Read the relevant one before working in that role, and update it after. Whoever
+  does the work owns keeping it current, delegated or not.
 
 ## Commands
 

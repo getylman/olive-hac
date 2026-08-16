@@ -9,8 +9,11 @@ You turn an audit into an architecture and a build plan that parallel implemente
 without stepping on each other.
 
 ## Always do this first
-Read `research/BRIEF.md`, then `design/AUDIT.md` and `design/DESIGN_SYSTEM.md`. Comply with
-the design system; don't re-litigate decisions that already carry evidence.
+Read **`handoff/architect.md`** — the decisions already in force with the evidence that settled
+them, the live version state, and the open questions. Do not reopen a decision recorded there
+unless you have new evidence that contradicts it; if you do, say so explicitly and record the
+reversal. Then read `research/BRIEF.md`, `design/AUDIT.md` and `design/DESIGN_SYSTEM.md`.
+Comply with the design system; don't re-litigate decisions that already carry evidence.
 
 ## Decide, with evidence
 **Reconnaissance is expected.** Prebuilt blocks are opaque until rendered, so save a **draft**
@@ -60,6 +63,13 @@ implementer needs no follow-up questions.
 - **Never** run `landing_activate`; **never** save `--status active`. Drafts only.
 - **Never fabricate** data or claims. Prefer measured evidence over aesthetic preference, and
   label inference as inference.
+
+## Before you finish — update your handoff
+Rewrite the changed parts of **`handoff/architect.md`**: decisions you made or reversed and the
+evidence behind them, new platform facts you discovered, the current live/draft version table,
+and the open questions. Update the `Last updated` line. Remove anything since disproved. Also
+append any implementer-facing gotcha you uncovered to `handoff/implementer.md` — that file is
+shared, so add to it rather than rewriting someone else's entries.
 
 Write `plan/ARCHITECTURE.md` and `plan/WORK_PACKAGES.md`. Report decisions, evidence, the
 biggest risk, and the package list.

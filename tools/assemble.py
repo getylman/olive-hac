@@ -8,9 +8,15 @@ Contract (plan/WORK_PACKAGES.md):
 
 Fragments merge in lexicographic filename order. Deterministic, stdlib only.
 
+Anything that would silently produce a wrong config is a hard error with a non-zero
+exit and no output file: a mis-numbered fragment (`5-x.json`) would be dropped from
+the page, and an "overrides" key in meta.json would be discarded in favour of
+overrides.json.
+
 Usage:
   python3 tools/assemble.py [--sections DIR] [--out FILE]
 """
+import argparse
 import json
 import os
 import re
@@ -44,14 +50,24 @@ def load(path, what):
         return None
 
 
-def main():
-    argv = sys.argv[1:]
-    sections_dir = os.path.join(ROOT, "landing", "sections")
-    out_path = os.path.join(ROOT, "landing", "config.json")
-    if "--sections" in argv:
-        sections_dir = os.path.abspath(argv[argv.index("--sections") + 1])
-    if "--out" in argv:
-        out_path = os.path.abspath(argv[argv.index("--out") + 1])
+def build_parser():
+    p = argparse.ArgumentParser(
+        prog="assemble.py",
+        description="Assemble landing/config.json from meta + section fragments.",
+    )
+    p.add_argument("--sections", metavar="DIR",
+                   default=os.path.join(ROOT, "landing", "sections"),
+                   help="fragment directory (default: landing/sections)")
+    p.add_argument("--out", metavar="FILE",
+                   default=os.path.join(ROOT, "landing", "config.json"),
+                   help="output config (default: landing/config.json)")
+    return p
+
+
+def main(argv=None):
+    args = build_parser().parse_args(argv)
+    sections_dir = os.path.abspath(args.sections)
+    out_path = os.path.abspath(args.out)
 
     meta_raw = load(os.path.join(META_DIR, "meta.json"), "meta")
     overrides = load(os.path.join(META_DIR, "overrides.json"), "overrides")
@@ -59,6 +75,13 @@ def main():
     if meta_raw is not None and not isinstance(meta_raw, dict):
         errors.append("meta: meta.json must be an object")
         meta_raw = None
+    if isinstance(meta_raw, dict) and "overrides" in meta_raw:
+        # overrides.json is the only source; a key here would be dropped silently
+        errors.append(
+            'meta: meta.json must not carry an "overrides" key — overrides come from '
+            "landing/meta/overrides.json only, so this value would be silently dropped. "
+            "Move the rules there and delete the key."
+        )
     if overrides is not None and not isinstance(overrides, list):
         errors.append("overrides: overrides.json must be an array")
         overrides = None
@@ -68,12 +91,17 @@ def main():
     die()
 
     names = sorted(n for n in os.listdir(sections_dir) if FRAGMENT_RE.match(n))
-    skipped = [
+    stray = [
         n for n in sorted(os.listdir(sections_dir))
         if n.endswith(".json") and not FRAGMENT_RE.match(n)
     ]
-    for n in skipped:
-        warnings.append(f"skipped (name must be NN-name.json): {n}")
+    for n in stray:
+        # dropping it would ship a page missing a section, with only a stdout warning
+        errors.append(
+            f"sections: {n} would be skipped — a fragment name must be NN-name.json "
+            "(exactly two leading digits). Rename it or move it out of "
+            f"{os.path.relpath(sections_dir, ROOT)}."
+        )
 
     prefixes = {}
     sections = []
@@ -109,10 +137,11 @@ def main():
         },
         "sections": sections,
     }
-    # carry any extra meta keys the meta owner chose to set
+    # carry any extra meta keys the meta owner chose to set ("overrides" is rejected
+    # above, so this can no longer silently lose one to the value already set)
     for k, v in meta_raw.items():
-        if k not in ("title", "theme"):
-            config["meta"].setdefault(k, v)
+        if k not in ("title", "theme", "overrides"):
+            config["meta"][k] = v
 
     with open(out_path, "w", encoding="utf-8") as fh:
         json.dump(config, fh, ensure_ascii=False, indent=2)

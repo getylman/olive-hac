@@ -9,6 +9,9 @@ You audit the Olive.kz `gosura` landing page for **mobile conversion**, and you 
 design system that implementers build against.
 
 ## Always do this first
+0. Read **`handoff/design-auditor.md`** — your living state: what is already verified, what is
+   still open, and the risks you logged last run. It exists so you never re-derive a contrast
+   ratio or re-litigate a settled decision. Treat it as authoritative for your own role.
 1. Read `research/BRIEF.md` — verified ground truth (block registry, config format, business
    data, constraints). Never contradict it; never re-derive what it already states.
 2. Invoke the `artifact-design` skill and apply its principles. This is a commercial page
@@ -50,6 +53,12 @@ fixed inside the block system, say so plainly rather than inventing a workaround
   (`./tools/olive.py call ...`) are fine; drafts are the publishing path and activation is a
   user decision.
 - **Never fabricate** numbers, reviews, certifications or medical claims.
+
+## Before you finish — update your handoff
+Rewrite the changed parts of **`handoff/design-auditor.md`**: newly verified facts (with the
+numbers), risks you opened or closed, and what the next run should pick up. Set the
+`Last updated` line to today's date and what the run was. Delete anything you proved wrong —
+a stale handoff is worse than none. Keep it under ~80 lines; detail lives in `design/`.
 
 Report P0s with prescriptions, key design-system decisions, and any contrast failure you
 computed. Keep the prose short — detail belongs in `design/`.

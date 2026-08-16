@@ -332,3 +332,195 @@ WP4  50,55,60,70             ─┤
 WP5  meta/, 80-orderbar      ─┘
 ```
 WP1–WP5 are fully parallel (disjoint files). WP6 starts when all five land.
+
+---
+
+# Fix round 1 — bug register of 2026-08-16 (`plan/BUGS.md`)
+
+Four packages, disjoint files, all **buildable in parallel**. `landing/config.json` stays
+generated — nobody edits it. Drafts only; live baseline stays **871**; never `--status active`.
+
+**Sequencing constraint (read first):** B1/B2 are bugs in `tools/qa.py` itself — a page with
+zero real `data-cta` attributes currently passes, and overrides are never checked. **qa.py
+output is untrusted until WP-F2 lands and its repros pass.** Build all four packages in
+parallel, but do not run the re-QA gate below until WP-F2 is verified.
+
+**Out of scope here:** A1 (offer/pricing copy) awaits `plan/OFFER_STRATEGY.md` from the
+marketing audit. Do not touch offer copy in this round. When it lands, the copy edit is a
+small follow-up touching exactly: `landing/sections/10-funnel.json` (`offer.badge/title`,
+subtitle), `70-cta.json` (subheading «5 дней питания + 5 в подарок…»), `60-faq.json`
+(«Как работают дни в подарок?» item), `80-orderbar.json` (offer `<span>`). Sequence it after
+WP-F1 so `80-orderbar.json` has one owner at a time.
+
+**Report to Olive (not work packages):**
+- A1 — pricing matrix ships `gift: 0` for the 5-day period at 10 000 ₸/день while
+  `pricing_periods` says `gift_days: 5` and the funnel's built-in copy says «5 + 5»;
+  `order-funnel.js` reads only the matrix. Platform-wide (same on olive.kz).
+- A6 — Swiper CSS loaded twice, Swiper JS twice (second copy unversioned, no cache reuse),
+  `leaflet.min.js` loaded with no map on the page.
+- `#sfOrderBtn` (template element) carries no `data-cta`, so desktop floating-button clicks
+  are invisible to conversion metrics. We cannot add it: overrides may never set `data-*`
+  (validate.py rule, mirrors platform).
+
+## Architectural decision — overrides vs static CSS (A2/A5 root cause)
+
+Overrides are a **single client-side pass at `DOMContentLoaded`** (verified: emitted applier
+script). Two structural consequences: they cannot style nodes injected later (A2 —
+`.of-gift-accent` is rebuilt by `innerHTML` on every `applyPeriod()`), and everything they fix
+flashes un-fixed until DCL on slow mobile (A5).
+
+**Decision: all 7 current overrides migrate to static CSS in a new `gs-` block
+(`05-style.json`). The overrides layer keeps exactly one rule — the new A3 `#sfOrderBtn`
+href fix, an attribute mutation CSS cannot express.** Recorded rule of thumb: *overrides are
+only for DOM mutations (text/attrs) on static template nodes; every cosmetic belongs in
+static CSS, which applies at first paint and to future nodes alike.*
+
+Specificity proof that each migrated rule still wins (checked against
+`research/order-funnel.css`, `research/client.css`, template head styles in
+`research/funnel-1058.html`):
+
+| # | must beat | their spec | our static rule | our spec | why we win |
+|---|---|---|---|---|---|
+| 1 | template head `<style>` `.sf-notice` | (0,1,0) | `.sf-notice{display:none}` | (0,1,0) | tie → body `<style>` comes after head → source order |
+| 2 | head `:root{--sf-notice-h:36px}` + 32px media query | (0,1,0) | `:root{--sf-notice-h:0px}` | (0,1,0) | tie → source order (also beats the MQ copy — same spec, ours later) |
+| 3 | `client.css:165` `.sf-header{color:#fff;background:rgb(196 241 57/65%)}`; `:178` `.sf-header.scrolled{background:#fff}` | (0,1,0) / (0,2,0) | `.sf-header,.sf-header.scrolled{background:#fff;color:#194536}` | (0,1,0)+(0,2,0) | base: tie+order; scrolled state covered explicitly at equal spec+order. **This is the P0 contrast fix — do not weaken.** |
+| 4 | `order-funnel.css:12` `.of{--of-green:#4CAF50;--of-green-d:#43a047;…}` | (0,1,0) | `#orderFunnel{--of-green:#194536;--of-green-d:#0f3527;--of-lime:#C4F139}` | (1,0,0) | higher specificity — order-independent (same element: `class="of" id="orderFunnel"`, funnel-1058.html:184) |
+| 5 | `order-funnel.css:256` `.of-offer{background:linear-gradient(105deg,#5cb85c…)}` | (0,1,0) | `#orderFunnel .of-offer{background:#194536}` | (1,1,0) | higher spec; `background` shorthand also clears the gradient image |
+| 6 | `order-funnel.css:1142` `.of-dd__gift{color:#e53935}` | (0,1,0) | `#orderFunnel .of-dd__gift{color:#194536}` | (1,1,0) | higher spec |
+| 7 | `order-funnel.css:1145` `.of-gift-accent{color:#e53935}` | (0,1,0) | `#orderFunnel .of-gift-accent{color:#194536}` | (1,1,0) | higher spec — and static CSS reaches the innerHTML-rebuilt nodes (the A2 fix) |
+
+Rules 4–7 are deliberately **ID-scoped, not order-dependent**: the funnel block injects its own
+CSS in-body (A6), possibly *after* our early style block, so ties there are not safe.
+**Inference flagged:** that the live server emits our html-block `<style>` at its body position
+(after head CSS) is verified in the preview renderer and consistent with the known fact "server
+emits html block content raw"; the round-1 draft render must confirm it (re-QA step 4). If it
+ever fails, rules 1–3 lose their tie-break and must be re-scoped (e.g. `html .sf-header`) — but
+rule 3's scrolled fix and all of-* rules survive regardless.
+
+Note: `validate.py` will emit its deliberate-restyle **warning** (not error) for sf-*/of-*
+selectors in block CSS — expected; this is exactly the reviewed-restyle case. WP-F2 must keep
+it a warning.
+
+## WP-F1 — Page: static-CSS migration, orderbar, dead desktop link (A2 A3 A4 A5)
+
+**Owns:** `landing/sections/05-style.json` (new), `landing/sections/80-orderbar.json`,
+`landing/meta/overrides.json`.
+
+1. **Create `05-style.json`** — `{"type":"html","props":{"content":"<style class=\"gs-fixes\">…</style>"}}`
+   containing exactly the 7 rules from the table above, in that order. The `class="gs-fixes"`
+   on the style tag gives qa.py a render marker. No markup besides the style tag.
+2. **Rewrite `landing/meta/overrides.json`** to exactly:
+   `[ { "selector": "#sfOrderBtn", "attrs": { "href": "#orderFunnel" } } ]`
+   (`href` is a legal attr; element is outside the protected scope; present in
+   research/gosura.html so validate's DOM check passes). Do **not** attempt `data-cta` — the
+   validator forbids it.
+3. **Edit `80-orderbar.json`:**
+   - Ship the bar hidden: `class="gs-orderbar gs-orderbar--hidden"` in the markup (A5 —
+     no flash over the hero); the observer reveals it.
+   - Observer callback: use `es[es.length-1].isIntersecting`, not `es[0]` (A5).
+   - Fallback: if `IntersectionObserver` is missing (but the bar exists), remove
+     `gs-orderbar--hidden` and return — never leave the bar permanently hidden.
+   - Replace `body{scroll-padding-bottom:90px}` with `:root{scroll-padding-bottom:96px}`
+     (A4 — the scroller is `html`, so the body rule was a no-op).
+   - Add `@media (max-width:767px){body{padding-bottom:96px}}` (A4 — footer no longer
+     occluded; ≥768px the bar is `display:none` so no desktop padding).
+
+**Acceptance:** `python3 tools/assemble.py && python3 tools/validate.py landing/config.json`
+→ 0 errors (sf/of restyle warnings expected). Config contains exactly 1 override.
+**Verify:** covered by the re-QA gate below (steps 3–5); A2/A4/A5 behaviors are
+browser-confirmed (listed there).
+
+## WP-F2 — Verification tools (B1 B2 B3 B4) — gates the re-QA
+
+**Owns:** `tools/qa.py`, `tools/validate.py`.
+
+1. **B1** (`qa.py:140`): replace `html.count("data-cta")` with
+   `len(re.findall(r'data-cta="[^"]+"', html))`; FAIL when 0.
+   *Repro:* fixture page whose only occurrence is `[data-cta]{color:red}` in CSS → must now
+   FAIL (today it prints `PASS … 1 found`).
+2. **B2** (`qa.py`): new `--- overrides delivered? ---` section. For each override in
+   `config.json`: assert its selector's first id/class token appears in the render (reuse the
+   token approach from validate's `selector_in_saved_dom`); for `text` rules assert the text
+   appears; for `addClass` assert the class appears; for `attrs` print the expected pairs as
+   a browser-check reminder (applied only at DCL — curl cannot see them). Also assert the
+   override JSON payload itself is embedded in the page.
+   *Repro:* `grep -i override tools/qa.py` → currently nothing; afterwards the section runs
+   against the round-1 draft.
+3. **B3** (`validate.py` `EXTERNAL_REF`/`INLINE_HANDLER`): extend EXTERNAL_REF with
+   `<img/<iframe/<source` external `src=` and `srcset=` forms; change handler regex to
+   `[\s/]on[a-z]+\s*=` so `<div/onclick=…>` is caught. Mirror the handler fix in qa.py's
+   hygiene check (`\son\w+\s*=` at qa.py:173).
+   *Repro (from the audit):* config with `<img src="https://x/y.png">`, an `<iframe>`, and
+   `<div/onclick="…">` in an html block currently passes with 0 warnings → must now error.
+4. **B4** (`validate.py`): run the html-content checks over every markup-bearing string prop,
+   not just `html.content` — at minimum `text.body`, `faq` items, `testimonials` items.
+   *Repro (from the audit):* `text` block whose `body` has `<script src="https://…">` and
+   `<img src=x onerror=…>`, and a `faq` answer with `onerror=` — all currently pass → must
+   now error.
+
+**Acceptance:** all four repro fixtures flip to FAIL/error; the current assembled config still
+validates with 0 errors; qa.py against saved render `research/preview-v2.html` still passes its
+legitimate checks. **Until this lands, treat every qa.py PASS as noise.**
+
+## WP-F3 — Pipeline & MCP client (B5 B6 B9)
+
+**Owns:** `tools/olive.py`, `tools/assemble.py`.
+
+1. **B5** (`olive.py`): port CLI to `argparse` subcommands; `--status` restricted to
+   `{draft, active, archive}`; dangling `--label` is a clean usage error.
+   *Repro:* `./tools/olive.py save gosura cfg --label --status draft` currently sets
+   label=`"--status"` silently → must now exit with a usage error.
+2. **B9** (`olive.py`): catch `urllib.error.HTTPError`, read its body, surface via the clean
+   `MCP error:` path with the JSON-RPC error content; make the SSE parser iterate events
+   instead of taking only the first `data:` line.
+   *Repro:* call with a broken token path → today a raw urllib traceback; must become
+   `MCP error: …` with body.
+3. **B6** (`assemble.py`): hard-error (non-zero, no output) if `meta.json` contains an
+   `overrides` key (today silently lost — overrides come only from `overrides.json`);
+   a `.json` file in `sections/` that fails `FRAGMENT_RE` (`5-x.json`, `100-x.json`) becomes
+   an **error**, not a stdout warning.
+   *Repro:* add `"overrides": []` to meta.json → must exit non-zero; `touch
+   landing/sections/5-x.json` → must exit non-zero (clean up fixtures after).
+
+**Acceptance:** repros flip; `python3 tools/assemble.py` on the clean tree still produces
+byte-identical `config.json` (diff against a pre-change copy).
+
+## WP-F4 — Preview hygiene (B7 B8)
+
+**Owns:** `preview/serve.py`, `preview/render.py`.
+
+1. **B7** (`serve.py`): serve only `preview/out/` plus the `research/` CSS the preview
+   references — never the repo root; validate the port arg (int, 1–65535) with a clean error.
+   *Repro:* `curl -s -o /dev/null -w '%{http_code}' localhost:8787/.git/config` → today 200;
+   must be 404. Non-int port must print usage, not a traceback.
+2. **B8** (`render.py:251`): escape the inlined JSON —
+   `json.dumps(overrides, ensure_ascii=False).replace("</", "<\\/")` — so a literal
+   `</script>` in an override value cannot close the tag early.
+   *Repro:* temporary override with value containing `</script>` → rendered preview HTML
+   keeps one balanced script tag.
+
+**Acceptance:** repros flip; preview still renders the assembled config.
+
+## Re-QA gate (after WP-F1 lands and WP-F2 is verified — WP-F2 first, always)
+
+1. `python3 tools/assemble.py` → regenerates `landing/config.json`.
+2. `python3 tools/validate.py landing/config.json` → 0 errors (deliberate sf/of warnings OK).
+3. `export OLIVE_MCP_URL='https://olive.kz/mcp/landings/…'` (from the runner's environment;
+   never committed), then
+   `./tools/olive.py save gosura landing/config.json --label "fix-round-1" --status draft`.
+   **Draft only. Never activate. Live stays 871.**
+4. `python3 tools/qa.py <new_vid> --save` with the **fixed** qa.py — must pass, including the
+   new override-delivery and real-attribute data-cta checks. Confirm in the saved render:
+   `gs-fixes` style block present at body position with `#orderFunnel .of-gift-accent`
+   rule; orderbar markup ships `gs-orderbar--hidden`; exactly 1 override in the embedded
+   payload (`#sfOrderBtn`).
+5. **Real-browser-only confirmations** (curl cannot see these): A2 — tap a plan/duration,
+   gift accent stays `#194536`; A3 — desktop ≥992px, scroll 40px, click «Заказать», lands on
+   `#orderFunnel`; A4 — scroll to document end at ≤767px, footer requisites fully visible
+   above the bar; A5 — no orderbar flash over the hero on a throttled first paint, and no
+   un-styled flash of header/notice/funnel colors (they are static CSS now).
+
+**Biggest risk of the round:** the migration silently reverting the P0 header-contrast fix if
+the source-order assumption for rules 1–3 fails on the live renderer — mitigated by the
+ID-scoping of all funnel rules, the explicit `.sf-header.scrolled` coverage, and re-QA step 4
+confirming the style block's body position before any browser check.

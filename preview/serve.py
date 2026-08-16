@@ -4,11 +4,15 @@
 Usage:  python3 preview/serve.py [landing/config.json] [port]
         (defaults: landing/config.json, port 8787)
 
-Serves the repo root, renders the config on start, and re-renders automatically
-whenever the config / render.py / saved CSS change. Open http://localhost:8787/
-for a 390x844 mobile frame side by side with a full-width desktop view; both
-auto-reload on change.
+Renders the config on start and re-renders automatically whenever the config /
+render.py / saved CSS change. Open http://localhost:8787/ for a 390x844 mobile
+frame side by side with a full-width desktop view; both auto-reload on change.
+
+Serving is **allowlisted**: only `preview/out/` (the render output) and the two
+`research/` stylesheets the render links are reachable. Everything else in the
+repo — `.git/`, `.claude/`, `landing/`, `tools/` — returns 404.
 """
+import argparse
 import sys
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -17,17 +21,27 @@ REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "preview"))
 import render  # noqa: E402
 
-CONFIG = Path(sys.argv[1]) if len(sys.argv) > 1 else REPO / "landing" / "config.json"
-PORT = int(sys.argv[2]) if len(sys.argv) > 2 else 8787
+DEFAULT_PORT = 8787
 
-WATCH = [CONFIG, REPO / "preview" / "render.py",
-         REPO / "research" / "client.css", REPO / "research" / "landing.css"]
+# --- what the preview is allowed to serve -----------------------------------
+# The render output lives in preview/out/ and links ../../research/*.css, which
+# resolves to /research/*.css over HTTP — so exactly those two files, no more.
+OUT_DIR = (REPO / "preview" / "out").resolve()
+ALLOWED_FILES = {(REPO / "research" / "client.css").resolve(),
+                 (REPO / "research" / "landing.css").resolve()}
+
+CONFIG = REPO / "landing" / "config.json"
 
 _last_stamp = 0.0
 
 
+def watch_paths():
+    return [CONFIG, REPO / "preview" / "render.py",
+            REPO / "research" / "client.css", REPO / "research" / "landing.css"]
+
+
 def stamp():
-    return max((p.stat().st_mtime for p in WATCH if p.exists()), default=0.0)
+    return max((p.stat().st_mtime for p in watch_paths() if p.exists()), default=0.0)
 
 
 def rerender_if_stale():
@@ -85,42 +99,110 @@ FRAME = """<!doctype html>
 
 
 class Handler(SimpleHTTPRequestHandler):
-    def do_GET(self):
-        if self.path == "/" or self.path == "/index.html":
-            body = FRAME.encode()
-            self.send_response(200)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.send_header("Content-Length", str(len(body)))
-            self.end_headers()
-            self.wfile.write(body)
-            return
-        if self.path.startswith("/__version"):
-            body = str(rerender_if_stale()).encode()
-            self.send_response(200)
-            self.send_header("Content-Type", "text/plain")
+    def _send(self, body, ctype, no_store=False):
+        self.send_response(200)
+        self.send_header("Content-Type", ctype)
+        if no_store:
             self.send_header("Cache-Control", "no-store")
-            self.send_header("Content-Length", str(len(body)))
-            self.end_headers()
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        if self.command != "HEAD":
             self.wfile.write(body)
-            return
-        return super().do_GET()
+
+    def _is_allowed(self, path):
+        """True only for the render output and the two stylesheets it links."""
+        try:
+            # translate_path() already strips the query, unquotes and collapses
+            # '..'; resolve() additionally refuses to follow symlinks out.
+            fs = Path(self.translate_path(path)).resolve()
+        except OSError:
+            return False
+        if fs in ALLOWED_FILES:
+            return True
+        return fs == OUT_DIR or OUT_DIR in fs.parents
+
+    def _route(self):
+        """Handle the synthetic routes; return True if the request is done."""
+        path = self.path.split("?", 1)[0].split("#", 1)[0]
+        if path in ("/", "/index.html"):
+            self._send(FRAME.encode(), "text/html; charset=utf-8")
+            return True
+        if path == "/__version":
+            self._send(str(rerender_if_stale()).encode(), "text/plain", no_store=True)
+            return True
+        if not self._is_allowed(self.path):
+            self.send_error(404, "Not Found")
+            return True
+        return False
+
+    def do_GET(self):
+        if not self._route():
+            super().do_GET()
+
+    def do_HEAD(self):
+        if not self._route():
+            super().do_HEAD()
+
+    def list_directory(self, path):  # never expose directory indexes
+        self.send_error(404, "Not Found")
+        return None
 
     def log_message(self, fmt, *args):  # quiet static noise, keep errors
-        if "__version" not in (args[0] if args else ""):
+        # log_error() passes an int code as args[0], so never assume a string:
+        # the old `"__version" not in args[0]` raised TypeError and killed the
+        # connection mid-404.
+        if "__version" not in (str(args[0]) if args else ""):
             super().log_message(fmt, *args)
 
 
-def main():
+def port_arg(value):
+    try:
+        port = int(value, 10)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"port must be a whole number, got {value!r}")
+    if not 1 <= port <= 65535:
+        raise argparse.ArgumentTypeError(f"port must be between 1 and 65535, got {port}")
+    return port
+
+
+def parse_args(argv=None):
+    parser = argparse.ArgumentParser(
+        prog="preview/serve.py",
+        description="Local preview server for the landing config (127.0.0.1 only).",
+        epilog="Serves preview/out/ and research/{client,landing}.css — nothing else.")
+    parser.add_argument("config", nargs="?", default=str(CONFIG),
+                        help="landing config to render (default: landing/config.json)")
+    parser.add_argument("port", nargs="?", type=port_arg, default=DEFAULT_PORT,
+                        help=f"TCP port, 1-65535 (default: {DEFAULT_PORT})")
+    args = parser.parse_args(argv)
+    if not Path(args.config).is_file():
+        parser.error(f"config not found: {args.config}")
+    return args
+
+
+def main(argv=None):
+    global CONFIG
+    args = parse_args(argv)
+    CONFIG = Path(args.config)
+
     rerender_if_stale()
-    server = ThreadingHTTPServer(("127.0.0.1", PORT),
-                                 lambda *a, **kw: Handler(*a, directory=str(REPO), **kw))
-    print(f"vibecoding preview: http://localhost:{PORT}/  (config: {CONFIG})")
+    try:
+        server = ThreadingHTTPServer(("127.0.0.1", args.port),
+                                     lambda *a, **kw: Handler(*a, directory=str(REPO), **kw))
+    except OSError as e:
+        print(f"cannot bind 127.0.0.1:{args.port} — {e}", file=sys.stderr)
+        return 1
+    print(f"vibecoding preview: http://localhost:{args.port}/  (config: {CONFIG})")
+    print("serving preview/out/ + research/client.css + research/landing.css only")
     print("Ctrl+C to stop")
     try:
         server.serve_forever()
     except KeyboardInterrupt:
         pass
+    finally:
+        server.server_close()
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

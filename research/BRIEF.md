@@ -125,16 +125,32 @@ weight loss first, not generic "healthy eating".
 | 14 | 341 |
 | 30 | 43 |
 
-→ **5 days is the #1 seller**, 14 days is #2. The site currently pushes "14 days + 14 free"
-hardest, but buyers actually start at 5 days. Lead with the **5-day trial as the low-friction
-entry**, present 14-day as the value upsell.
+→ **5 days is the #1 seller**, 14 days is #2 by order count.
 
-**Gift days (`pricing_periods`): every multi-day period doubles — 5+5, 14+14, 30+30.**
-"Pay for 5 days, eat for 10" is a genuinely strong, underused offer.
+**⚠ Gift days — do NOT trust `pricing_periods` here. Read `plan/BUGS.md` §A1 first.**
+`pricing_periods` reports `gift_days` 5 / 14 / 30, and the `order_funnel` block's built-in copy
+says «5 + 5 дней в подарок» — but the **rendered pricing matrix**, which is the only thing
+`order-funnel.js` actually reads and charges from, says otherwise:
+
+| period | total ₸ (1200 ккал) | gift days | ₸/day |
+|---|---|---|---|
+| 1 день | 10 000 | 0 | 10 000 |
+| **5 дней** | **50 000** | **0** | **10 000** |
+| 14 дней | 140 000 | 14 | 5 000 |
+| 30 дней | 300 000 | 30 | 5 000 |
+
+**Only 14 and 30 days actually deliver the doubling.** The 5-day period has no gift days and
+costs double per day. The same matrix ships on olive.kz itself, so this is Olive's production
+data, not a defect in our config — and it is reported to them. Any copy promising "pay 5, eat
+10" is a promise the checkout will not honour. The approved, matrix-true offer is in
+`plan/OFFER_STRATEGY.md`: lead with 14+14, keep 1–5 days as an honestly-priced trial.
 
 **The biggest leak: 482 of 1130 orders (43%) sit in `pending_payment` vs 648 `sent`.**
 Nearly half of everyone who completes the order form never pays. Reducing payment-step
 friction and anxiety is worth more than any extra top-of-funnel traffic.
+**Do not attribute this leak to the gift-day discrepancy above** — average order value is
+₸81.1k for unpaid vs ₸82.1k for shipped, so abandonment is *not* concentrated in the cheap
+5-day cohort. The two are separate problems, and the leak's cause is still unidentified.
 
 ## 5. Current state of our page — a blank slate
 
