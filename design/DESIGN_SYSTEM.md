@@ -1,5 +1,11 @@
 # Gosura Landing Design System
 
+> **v7 skin (2026-08-16): палитра §1 и типографика §2 для текущего драфта заменены
+> донорским скином — см. `design/SKIN_V7.md`** (палитра #3F6B39/#2C4E28/#DCEBC4/#F4F8EE,
+> дисплей = system-ui 800 tight, кнопки-пилюли, gs-токены переехали в `04-skin.json`).
+> Контраст-матрица §1 и правила §6 остаются в силе как инварианты; лайм в скине не
+> используется, но его запреты не отменены.
+
 The contract implementers code against. Everything here is compatible with the block
 system (BRIEF §3): `gs-` blocks ship as self-contained `html` sections; global knobs go
 through `meta.theme`; site chrome is touched only via legal `meta.overrides`.

@@ -1,11 +1,28 @@
 # Handoff — landing-architect
 
 **Owner:** `.claude/agents/landing-architect.md` (Fable)
-**Last updated:** 2026-08-16 · after planning Fix round 2 (see `plan/WORK_PACKAGES.md`)
+**Last updated:** 2026-08-16 · after the v7-skin port (donor visual round, design/SKIN_V7.md)
 
 Living state for the architecture role. Read at the start of a run; update at the end.
 
 ## Decisions in force (with the evidence that settled them)
+
+0. **v7-skin round (2026-08-16, supersedes parts of 2 and 5 below).** User directive: adopt
+   the donor visual from github.com/dorab1/olive-hac (`research/donor-v7.html`) while keeping
+   our machinery. In force now:
+   - **Section order:** hero (03) → [style bands 04–09] → funnel (10) → cals (15) → trust
+     (20) → steps (30) → plans (35) → dishes (40) → marquee (45) → feats (50) → quality
+     (55) → FAQ (60) → promo (70) → sticky bar (80). Funnel-first survives: the donor hero
+     is compact (~1 viewport) and every CTA anchors `#orderFunnel`.
+   - **Theme is no longer brand defaults:** `meta.theme` = donor palette (spring/deep
+     mapping — SKIN_V7 §1); the funnel is pinned by 05-style rule 4 regardless of the
+     `body .of` theme compilation (ID-scoped wins).
+   - `70-cta.json` (block `cta`) replaced by `70-promo.json` (html): `l-cta` locks button
+     text to primaryDark, which can't express the donor's white-on-green button.
+   - Hero targets (decision 4) preserved via the hero SUB line, not the slogan.
+   - Implemented inline (single hand for skin coherence), not via the WP pipeline: the
+     donor file fixed all design decisions, so the architect/implementer split would have
+     transferred a whole-page context to every agent for a value-only translation.
 
 1. **`order_funnel`, placed first; `order_menu` is out.**
    Evidence from rendered recon draft 1058: the platform counts conversions via a global

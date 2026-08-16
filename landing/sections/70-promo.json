@@ -1,0 +1,6 @@
+{
+  "type": "html",
+  "props": {
+    "content": "<style class=\"gs-promo-css\">\n/* v7 skin: donor promo/final CTA (research/donor-v7.html:329-337) replacing the plain\n   `cta` block. Offer line is the matrix-true 14+14 (OFFER_STRATEGY). Photo is Olive's\n   own asset, curl-verified 200, background with silent gradient fallback. */\n.gs-promo__img{border-radius:var(--gs-r-big,26px);aspect-ratio:16/10;max-width:760px;\n  margin:0 auto 24px;box-shadow:var(--gs-sh-raised,0 30px 60px -30px rgba(32,39,26,.35));\n  background:url(\"/assets/images/promo-food.webp\") center/cover no-repeat,\n    linear-gradient(140deg,#DCEBC4,#C3DF9C)}\n.gs-promo__btnrow{margin-top:24px}\n@media (max-width:560px){.gs-promo__btnrow .gs-btn{width:100%}}\n</style>\n<section class=\"gs-sec gs-promo\">\n  <div class=\"gs-wrap gs-center\">\n    <div class=\"gs-imgbox gs-imgbox--photo gs-promo__img\" aria-hidden=\"true\"></div>\n    <h2 class=\"gs-h2\">Готовы попробовать?</h2>\n    <p class=\"gs-lead\">14 дней + 14 в подарок — от 140 000 ₸ за тариф, это от 5 000 ₸ за день еды.</p>\n    <div class=\"gs-promo__btnrow\"><a class=\"gs-btn gs-btn--big\" href=\"#orderFunnel\" data-cta=\"promo\">Заказать</a></div>\n  </div>\n</section>"
+  }
+}

@@ -1,7 +1,7 @@
 # Handoff — landing-implementer
 
 **Owner:** `.claude/agents/landing-implementer.md` (Opus)
-**Last updated:** 2026-08-16 · after the v2 build
+**Last updated:** 2026-08-16 · after the v7-skin port (donor visual round)
 
 Living state for the implementation role. Read at the start of a run; update at the end.
 Record gotchas that cost you time — that is what this file is for.
@@ -26,6 +26,39 @@ Record gotchas that cost you time — that is what this file is for.
 | `landing/sections/08-tapfix.json` | band `gs-tapfix` (v5): scroll-margin-top + calendar 44px tap targets |
 
 Then: `python3 tools/assemble.py` → `tools/validate.py` → `tools/qa.py <version_id>`.
+
+## v7-skin round (2026-08-16) — donor visual port
+
+Full spec: `design/SKIN_V7.md`. Donor page: `research/donor-v7.html` (from
+github.com/dorab1/olive-hac). User directive: donor's look, our machinery.
+
+- **The gs- token block MOVED: it now lives in `04-skin.json`, not `20-trust.json`.**
+  04 also owns shared primitives (`.gs-sec/.gs-wrap/.gs-h2/.gs-lead/.gs-btn/.gs-imgbox/
+  .gs-tag`) that sections 15–70 consume — dropping 04 unstyles half the page.
+- New fragments: `03-hero` (headline is a `<p>` — the page's one `<h1>` is the funnel's,
+  qa.py enforces exactly one), `15-cals`, `35-plans`, `45-marquee`, `70-promo`
+  (replaces the deleted `70-cta.json` — the `l-cta` block can't do a green button with
+  white text: its text color is locked to `--l-primaryDark`).
+- **`validate.py` hard-errors on `url("https:…")` even for olive.kz's own assets.**
+  Its own definition says external = absolute/protocol-relative, so same-origin images go
+  ROOT-RELATIVE: `url("/assets/images/…")`. They 404 in the local preview (gradient
+  fallback shows) and resolve on olive.kz. Never `<img>`+`onerror` — inline handlers are
+  rejected; photos ride as `background-image` over a spring gradient so failure is silent.
+- Funnel bands 05–09: structure frozen, **values recolored** to the donor palette
+  (`--of-green:#3F6B39`, `--of-green-d:#2C4E28`, `--of-lime:#DCEBC4`, `--of-bg:#F4F8EE`);
+  05 gained rule 8 (`of-prefs__preview` hardcoded `#194536` → `#2C4E28`). The round-2
+  contrast repairs (#6B6B6B/#B42318) were RE-COMPUTED on the new grounds and still pass
+  (table in SKIN_V7 §1) — re-verify again if any ground hex changes.
+- Local `qa.py --file preview/out/index.html` shows 10 structural FAILs (no h1, funnel
+  marker, all override checks): the local render builds the funnel as a placeholder and
+  embeds overrides as `window.__GSP_OVERRIDES`, not the server's `var rules=[…]` form.
+  Expected — only `qa.py <version_id>` against the server render is authoritative.
+- Soft-on-soft adjacent sections visually merge (funnel bg is now soft): cals deliberately
+  sits on white. Keep the alternation rule from SKIN_V7 §5 when inserting sections.
+- Donor claims NOT ported (don't reintroduce): «160 г белка», «меню не повторяется 30
+  дней», «Доставим бесплатно», «Популярный» on the 14-day plan (5-day leads by volume),
+  «лабораторный контроль каждой партии» («регулярный» is what's verifiable), RU/KZ
+  toggle, tel:-order, reveal-on-scroll JS (hides content when JS fails).
 
 ## Gotchas that already cost time
 

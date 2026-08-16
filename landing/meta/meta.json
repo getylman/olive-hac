@@ -1,11 +1,11 @@
 {
   "title": "Готовое ПП-меню с доставкой по Алматы — O-live",
   "theme": {
-    "primary": "#C4F139",
-    "primaryHover": "#D5FA6B",
-    "primaryDark": "#194536",
-    "ink": "#181717",
-    "bgSoft": "#F2F2F2",
-    "bgAccent": "#EAF3DF"
+    "primary": "#DCEBC4",
+    "primaryHover": "#C3DF9C",
+    "primaryDark": "#2C4E28",
+    "ink": "#20271A",
+    "bgSoft": "#F4F8EE",
+    "bgAccent": "#DCEBC4"
   }
 }

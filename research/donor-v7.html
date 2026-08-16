@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>O-live — питайся здорово, доставка по Алматы</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FFFFFF; --soft:#F4F8EE; --spring:#DCEBC4; --spring-2:#C3DF9C;
+  --green:#3F6B39; --green-2:#4E8046; --green-deep:#2C4E28; --ink:#20271A;
+  --muted:#697260; --gold:#E0A73C; --line:rgba(32,39,26,.12);
+  --shadow:0 30px 60px -30px rgba(32,39,26,.35); --shadow-sm:0 14px 30px -18px rgba(32,39,26,.22);
+  --wrap:1200px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{display:block;max-width:100%}
+h1,h2,h3{font-family:'Manrope',sans-serif;font-weight:800;line-height:1.04;letter-spacing:-.03em}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:3px solid var(--green);outline-offset:2px;border-radius:6px}
+.wrap{max-width:var(--wrap);margin:0 auto;padding:0 20px}
+
+.imgbox{position:relative;overflow:hidden;background:linear-gradient(140deg,var(--spring),var(--spring-2));display:grid;place-items:center}
+.imgbox.dark{background:linear-gradient(140deg,var(--green-2),var(--green-deep))}
+.imgbox::before{content:attr(data-emoji);position:absolute;font-size:46px;opacity:.6}
+.imgbox img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2}
+
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .8s cubic-bezier(.2,.8,.2,1),transform .8s cubic-bezier(.2,.8,.2,1)}
+.reveal.in{opacity:1;transform:none}
+
+/* nav */
+.nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.nav .row{display:flex;align-items:center;justify-content:space-between;padding:13px 20px;max-width:var(--wrap);margin:0 auto}
+.brand{display:flex;align-items:center;font-weight:800;font-size:22px;color:var(--green);letter-spacing:-.03em}
+.brand img{height:30px;width:auto}
+.brand span{color:var(--gold)}
+.nav .links{display:none;gap:26px}
+.nav .links a{font-weight:600;font-size:15px;opacity:.85}
+.nav .links a:hover{opacity:1;color:var(--green)}
+.nav .right{display:flex;align-items:center;gap:12px}
+.lang{display:flex;border:1px solid var(--line);border-radius:100px;overflow:hidden;font-size:12px;font-weight:700}
+.lang button{padding:7px 11px;color:var(--muted)}
+.lang button[aria-pressed="true"]{background:var(--green);color:#fff}
+.burger{width:42px;height:42px;border-radius:12px;border:1px solid var(--line);display:grid;place-items:center;color:var(--green)}
+.burger svg{width:22px;height:22px}
+.btn{background:var(--green);color:#fff;font-weight:700;font-size:15px;padding:13px 22px;border-radius:100px;display:inline-flex;align-items:center;justify-content:center;gap:9px;transition:.15s;box-shadow:0 12px 24px -12px var(--green-deep)}
+.btn:hover{background:var(--green-2)}
+.btn:active{transform:translateY(1px)}
+.btn.big{font-size:17px;padding:17px 34px}
+.btn.ghost{background:transparent;color:var(--green);box-shadow:none;border:1.5px solid var(--green)}
+.btn.pill-nav{display:none}
+.mobile-menu{display:none;flex-direction:column;padding:8px 20px 18px;border-bottom:1px solid var(--line);background:var(--bg)}
+.mobile-menu.open{display:flex}
+.mobile-menu a{padding:13px 4px;font-weight:600;border-bottom:1px solid var(--line)}
+
+/* hero */
+.hero{position:relative;overflow:hidden;padding:36px 0 48px;background:var(--bg)}
+.hero .arc{position:absolute;top:-46%;left:50%;transform:translateX(-50%);width:150%;height:82%;background:linear-gradient(180deg,var(--spring),transparent);border-radius:0 0 50% 50%;z-index:0;opacity:.8}
+.hero .wrap{position:relative;z-index:3;text-align:center}
+.hero h1{font-size:clamp(52px,15vw,120px);color:var(--ink);line-height:.96;letter-spacing:-.045em}
+.hero .bowl{position:relative;width:min(80%,440px);margin:18px auto 0;aspect-ratio:1;z-index:2}
+.hero .bowl .imgbox{position:absolute;inset:0;border-radius:50%;box-shadow:var(--shadow)}
+.hero .bowl .imgbox::before{font-size:80px}
+.hero .sub{font-size:clamp(16px,4vw,20px);color:var(--muted);max-width:26ch;margin:22px auto 24px;font-weight:500}
+.hero .cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.hero h1,.hero .bowl,.hero .sub,.hero .cta{opacity:0;transform:translateY(22px);animation:rise .9s cubic-bezier(.2,.8,.2,1) forwards}
+.hero .bowl{animation-delay:.12s}.hero .sub{animation-delay:.24s}.hero .cta{animation-delay:.34s}
+@keyframes rise{to{opacity:1;transform:none}}
+
+/* section */
+.section{position:relative;padding:56px 0;overflow:hidden}
+.section.soft{background:var(--soft)}
+.h-sec{font-size:clamp(32px,7.5vw,56px);color:var(--ink);margin-bottom:16px;letter-spacing:-.035em}
+.center{text-align:center}
+.center .lead{margin-left:auto;margin-right:auto}
+.lead{font-size:clamp(16px,4vw,19px);color:var(--muted);max-width:40ch;font-weight:500}
+
+/* calories */
+.cals{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:30px}
+.cal{background:var(--bg);border:2px solid var(--line);border-radius:22px;overflow:hidden;text-align:left;transition:.15s;box-shadow:var(--shadow-sm)}
+.cal:active{transform:scale(.99)}
+.cal .imgbox{aspect-ratio:16/11}
+.cal .imgbox::before{font-size:56px;opacity:.85}
+.cal .b{padding:16px 18px}
+.cal .kc{font-weight:800;font-size:28px;color:var(--ink);letter-spacing:-.04em}
+.cal .di{font-size:14px;color:var(--muted);font-weight:600;margin-top:2px}
+.cal[aria-pressed="true"]{border-color:var(--green)}
+.price-line{text-align:center;margin-top:28px}
+.price-line .p{font-weight:800;font-size:clamp(26px,6vw,40px);color:var(--green);letter-spacing:-.04em}
+.price-line .n{color:var(--muted);font-weight:600;margin-top:4px}
+
+/* result */
+.result .grid{display:grid;gap:16px;margin-top:20px}
+.result .big-img{border-radius:26px;overflow:hidden;aspect-ratio:16/12;box-shadow:var(--shadow)}
+.result .big-img .imgbox{width:100%;height:100%}
+.result .big-img .imgbox::before{font-size:66px}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:24px}
+.stat{background:var(--bg);border:1px solid var(--line);border-radius:20px;padding:20px 14px;text-align:center}
+.stat .v{font-weight:800;font-size:clamp(24px,6vw,36px);color:var(--green);line-height:1;letter-spacing:-.04em}
+.stat .l{font-size:12.5px;color:var(--muted);font-weight:600;margin-top:8px}
+
+/* features */
+.feats{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px}
+.feat{background:var(--bg);border:1px solid var(--line);border-radius:24px;overflow:hidden;box-shadow:var(--shadow-sm)}
+.feat .imgbox{aspect-ratio:4/3}
+.feat .imgbox::before{font-size:44px}
+.feat .b{padding:18px}
+.feat .t{font-weight:800;font-size:20px;margin-bottom:6px;line-height:1.1;letter-spacing:-.03em}
+.feat .d{font-size:13.5px;color:var(--muted);font-weight:500}
+
+/* marquee */
+.marquee{background:var(--green);color:#fff;overflow:hidden;padding:16px 0;white-space:nowrap}
+.marquee .track{display:inline-flex;animation:scroll 20s linear infinite}
+.marquee .track span{font-weight:800;font-size:18px;padding:0 22px;display:inline-flex;align-items:center;gap:22px;letter-spacing:-.02em}
+.marquee .track span::after{content:"✳";color:var(--gold);font-size:13px}
+@keyframes scroll{to{transform:translateX(-50%)}}
+
+/* quality */
+.q-imgs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:24px 0}
+.q-imgs .imgbox{aspect-ratio:3/4;border-radius:16px}
+.q-list{list-style:none}
+.q-list li{font-weight:800;font-size:clamp(19px,4.6vw,26px);color:var(--ink);padding:16px 0;border-bottom:1px solid var(--line);letter-spacing:-.03em}
+.q-list li:last-child{border:none}
+
+/* promo */
+.promo .big-img{border-radius:26px;overflow:hidden;aspect-ratio:16/10;box-shadow:var(--shadow);margin-bottom:24px}
+.promo .big-img .imgbox{width:100%;height:100%}
+.promo .big-img .imgbox::before{font-size:64px}
+
+/* order */
+.order{text-align:center;padding:64px 0}
+.order h2{font-size:clamp(38px,9vw,68px);margin-bottom:16px;letter-spacing:-.04em}
+.order .lead{margin:0 auto 26px}
+
+/* plans */
+.plans{display:grid;grid-template-columns:1fr;gap:16px;margin-top:34px}
+.plan{position:relative;background:var(--bg);border:2px solid var(--line);border-radius:22px;padding:24px 20px 20px;text-align:left;box-shadow:var(--shadow-sm)}
+.plan.best{border-color:var(--green);box-shadow:var(--shadow)}
+.plan .tag{position:absolute;top:-12px;left:20px;background:var(--green);color:#fff;font-weight:800;font-size:12px;padding:6px 13px;border-radius:100px;letter-spacing:-.01em}
+.plan .name{font-weight:800;font-size:21px;letter-spacing:-.03em}
+.plan .per{margin-top:8px;font-weight:800;font-size:clamp(28px,6vw,36px);color:var(--green);letter-spacing:-.04em;line-height:1;white-space:nowrap}
+.plan .per span{font-size:16px;color:var(--muted);font-weight:700}
+.plan .meta{margin-top:6px;font-size:14px;color:var(--muted);font-weight:600}
+.plan .gift{display:inline-block;margin-top:12px;background:var(--soft);color:var(--green-deep);font-weight:800;font-size:13px;padding:7px 13px;border-radius:100px}
+.plan .btn{width:100%;margin-top:16px}
+.plans-note{text-align:center;margin-top:18px;font-size:13px;color:var(--muted);font-weight:600}
+@media(min-width:768px){.plans{grid-template-columns:repeat(3,1fr);align-items:start}}
+
+/* footer */
+.footer{background:var(--green-deep);color:#F1F4EA;padding:44px 0 60px}
+.footer .brand{color:#F1F4EA;font-size:26px;margin-bottom:6px}
+.footer .tag{font-weight:800;font-size:19px;opacity:.92;margin-bottom:16px;letter-spacing:-.03em}
+.footer .cols{display:flex;flex-wrap:wrap;gap:30px;justify-content:space-between}
+.footer .row{font-size:14px;opacity:.78;margin-bottom:8px}
+.footer .socials{display:flex;gap:11px;margin:16px 0}
+.footer .socials a{width:42px;height:42px;border-radius:12px;border:1px solid rgba(241,244,234,.2);display:grid;place-items:center}
+.footer .socials svg{width:19px;height:19px}
+.footer a.link{color:var(--gold);font-weight:700}
+
+/* sticky */
+.sticky{position:fixed;bottom:0;left:0;right:0;z-index:40;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:12px 20px calc(12px + env(safe-area-inset-bottom));display:flex;gap:12px;align-items:center;transform:translateY(130%);transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.sticky.show{transform:none}
+.sticky .t{flex:1;font-weight:800;font-size:17px;color:var(--green);letter-spacing:-.03em}
+
+@media(min-width:768px){
+  .cals{grid-template-columns:repeat(4,1fr)}
+  .feats{grid-template-columns:repeat(4,1fr)}
+  .result .grid{grid-template-columns:1.3fr 1fr;align-items:center}
+  .result .stats{grid-template-columns:1fr;margin-top:0}
+}
+@media(min-width:1024px){
+  .nav .links{display:flex}.nav .btn.pill-nav{display:inline-flex}.burger{display:none}
+  .hero{padding:26px 0 74px}.hero .arc{height:90%;top:-50%}.hero .bowl{width:min(42%,460px)}
+  .section{padding:92px 0}
+  .order{padding:110px 0}
+  .sticky{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="row">
+    <a class="brand" href="#"><img src="https://olive.kz/assets/images/logo.svg" alt="O-live" onerror="this.parentNode.innerHTML='O<span>·</span>live'"></a>
+    <div class="links">
+      <a href="#cals">Меню</a><a href="#feats">O-live</a><a href="#quality">Качество</a><a href="#order">Доставка</a>
+    </div>
+    <div class="right">
+      <div class="lang" role="group" aria-label="Язык"><button aria-pressed="true">RU</button><button aria-pressed="false">KZ</button></div>
+      <a class="btn pill-nav" href="#order" data-cta="nav">Заказать</a>
+      <button class="burger" id="burger" aria-label="Меню"><svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+    </div>
+  </div>
+  <div class="mobile-menu" id="mmenu">
+    <a href="#cals">Меню</a><a href="#feats">O-live</a><a href="#quality">Качество</a><a href="#order">Доставка</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="arc"></div>
+  <div class="wrap">
+    <h1>Питайся<br>здорово</h1>
+    <div class="bowl">
+      <div class="imgbox" data-emoji="🥗"><img src="https://olive.kz/assets/images/banner-menu-food.webp" alt="Рацион O-live" onerror="this.remove()"></div>
+    </div>
+    <p class="sub">Сбалансированные рационы с доставкой по Алматы каждый день.</p>
+    <div class="cta">
+      <a class="btn big" href="#order" data-cta="hero">Заказать</a>
+      <a class="btn big ghost" href="#cals">Выбрать меню</a>
+    </div>
+  </div>
+</header>
+
+<!-- CALORIES -->
+<section class="section soft" id="cals">
+  <div class="wrap">
+    <div class="center reveal">
+      <h2 class="h-sec">Под вашу калорийность</h2>
+      <p class="lead">Рационы под разные цели: похудение, баланс, набор массы, спорт.</p>
+    </div>
+    <div class="cals reveal" role="group" aria-label="Калорийность">
+      <button class="cal" data-kc="1200" aria-pressed="false"><div class="imgbox" data-emoji="🥙"></div><div class="b"><div class="kc">1200</div><div class="di">4 блюда в день</div></div></button>
+      <button class="cal" data-kc="1500" aria-pressed="true"><div class="imgbox" data-emoji="🍲"></div><div class="b"><div class="kc">1500</div><div class="di">4 блюда в день</div></div></button>
+      <button class="cal" data-kc="1800" aria-pressed="false"><div class="imgbox" data-emoji="🍛"></div><div class="b"><div class="kc">1800</div><div class="di">5 блюд в день</div></div></button>
+      <button class="cal" data-kc="2500" aria-pressed="false"><div class="imgbox" data-emoji="🥩"></div><div class="b"><div class="kc">2500</div><div class="di">6 блюд в день</div></div></button>
+    </div>
+    <div class="price-line reveal">
+      <div class="p">День еды от 5 000 ₸</div>
+      <div class="n">Доставим по Алматы бесплатно</div>
+    </div>
+  </div>
+</section>
+
+<!-- RESULT -->
+<section class="section result">
+  <div class="wrap">
+    <div class="center reveal"><h2 class="h-sec">O-live про реальный результат</h2></div>
+    <div class="grid">
+      <div class="big-img reveal"><div class="imgbox" data-emoji="🍽️"><img src="https://olive.kz/assets/images/result.webp" alt="Результат O-live" onerror="this.remove()"></div></div>
+      <div class="stats reveal">
+        <div class="stat"><div class="v">160 г</div><div class="l">белка в день</div></div>
+        <div class="stat"><div class="v">297</div><div class="l">блюд без повторов</div></div>
+        <div class="stat"><div class="v">30 дней</div><div class="l">меню не повторяется</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PLANS -->
+<section class="section" id="plans">
+  <div class="wrap">
+    <div class="center reveal">
+      <h2 class="h-sec">Тарифы</h2>
+      <p class="lead">Чем длиннее тариф, тем дешевле день. На 14 и 30 днях — столько же дней в подарок.</p>
+    </div>
+    <div class="plans reveal">
+      <div class="plan">
+        <div class="name">Пробный · 5 дней</div>
+        <div class="per">10 000 ₸<span> / день</span></div>
+        <div class="meta">50 000 ₸ за 5 дней</div>
+        <a class="btn ghost" href="#order" data-cta="plan-5">Попробовать</a>
+      </div>
+      <div class="plan best">
+        <div class="tag">Популярный</div>
+        <div class="name">14 дней</div>
+        <div class="per">5 000 ₸<span> / день</span></div>
+        <div class="meta">140 000 ₸ за 14 дней</div>
+        <div class="gift">+14 дней в подарок</div>
+        <a class="btn" href="#order" data-cta="plan-14">Заказать</a>
+      </div>
+      <div class="plan">
+        <div class="name">30 дней</div>
+        <div class="per">5 000 ₸<span> / день</span></div>
+        <div class="meta">300 000 ₸ за 30 дней</div>
+        <div class="gift">+30 дней в подарок</div>
+        <a class="btn ghost" href="#order" data-cta="plan-30">Заказать</a>
+      </div>
+    </div>
+    <p class="plans-note">Цены указаны для рациона 1200 ккал. На более калорийных тарифах день дороже.</p>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section soft" id="feats">
+  <div class="wrap">
+    <div class="center reveal"><h2 class="h-sec">Почему O-live</h2></div>
+    <div class="feats reveal">
+      <div class="feat"><div class="imgbox" data-emoji="🎯"><img src="https://olive.kz/assets/images/features/1.webp" alt="" onerror="this.remove()"></div><div class="b"><div class="t">4 цели питания</div><div class="d">Похудение, баланс, набор массы, спорт</div></div></div>
+      <div class="feat"><div class="imgbox" data-emoji="🍱"><img src="https://olive.kz/assets/images/features/3.webp" alt="" onerror="this.remove()"></div><div class="b"><div class="t">297 блюд</div><div class="d">Каждый день что-то новое</div></div></div>
+      <div class="feat"><div class="imgbox" data-emoji="🚚"><img src="https://olive.kz/assets/images/features/4.webp" alt="" onerror="this.remove()"></div><div class="b"><div class="t">Удобная доставка</div><div class="d">Утром или вечером каждый день</div></div></div>
+      <div class="feat"><div class="imgbox" data-emoji="⚙️"><img src="https://olive.kz/assets/images/features/2.webp" alt="" onerror="this.remove()"></div><div class="b"><div class="t">Персонализация</div><div class="d">Меняй блюда и убирай ингредиенты</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee" aria-hidden="true"><div class="track">
+  <span>Смарт калории</span><span>Новое меню</span><span>297 блюд</span><span>Больше белка</span>
+  <span>Смарт калории</span><span>Новое меню</span><span>297 блюд</span><span>Больше белка</span>
+</div></div>
+
+<!-- QUALITY -->
+<section class="section" id="quality">
+  <div class="wrap">
+    <div class="center reveal"><h2 class="h-sec">Контроль качества</h2></div>
+    <div class="q-imgs reveal">
+      <div class="imgbox" data-emoji="🔬"><img src="https://olive.kz/assets/images/quality/1.webp" alt="" onerror="this.remove()"></div>
+      <div class="imgbox" data-emoji="🧊"><img src="https://olive.kz/assets/images/quality/2.webp" alt="" onerror="this.remove()"></div>
+      <div class="imgbox" data-emoji="📦"><img src="https://olive.kz/assets/images/quality/3.webp" alt="" onerror="this.remove()"></div>
+    </div>
+    <ul class="q-list reveal">
+      <li>Международный стандарт ISO 22000</li>
+      <li>Сертификат Халал</li>
+      <li>Технология Cook & Chill</li>
+      <li>Упаковка MAP без консервантов</li>
+      <li>Лабораторный контроль каждой партии</li>
+    </ul>
+    <div class="reveal" style="margin-top:26px"><a class="btn ghost" href="https://olive.kz/food-quality">Узнать больше</a></div>
+  </div>
+</section>
+
+<!-- PROMO -->
+<section class="section soft promo center">
+  <div class="wrap reveal">
+    <div class="big-img"><div class="imgbox" data-emoji="🥑"><img src="https://olive.kz/assets/images/promo-food.webp" alt="" onerror="this.remove()"></div></div>
+    <h2 class="h-sec">Успей заказать по выгодным ценам</h2>
+    <p class="lead">День еды от 5 000 ₸. Доставим по Алматы бесплатно.</p>
+    <div style="margin-top:24px"><a class="btn big" href="#order" data-cta="promo">Заказать</a></div>
+  </div>
+</section>
+
+<!-- ORDER -->
+<section class="section order" id="order">
+  <div class="wrap reveal">
+    <h2>Проголодались?</h2>
+    <p class="lead">Соберите рацион за минуту. Доставим бесплатно.</p>
+    <a class="btn big" href="tel:+77008702525" data-cta="order">Заказать</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <div class="brand">O<span style="color:var(--gold)">·</span>live</div>
+        <div class="tag">Живи легко</div>
+        <div class="socials">
+          <a href="https://www.instagram.com/o_live.kz" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg></a>
+          <a href="https://wa.me/77008702626" aria-label="WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.5 15.3L2 22l4.8-1.5A10 10 0 1 0 12 2Zm5.3 14.1c-.2.6-1.2 1.1-1.7 1.2-.4.1-1 .1-1.6-.1-.4-.1-.9-.3-1.5-.5-2.6-1.1-4.3-3.8-4.4-4-.1-.2-1-1.4-1-2.6 0-1.2.6-1.8.9-2 .2-.2.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.7 1.8c.1.1.1.3 0 .5l-.3.5-.4.4c-.1.1-.3.3-.1.5.1.3.7 1.1 1.4 1.7.9.8 1.6 1 1.9 1.2.2.1.4.1.5-.1l.6-.7c.2-.2.3-.2.5-.1l1.7.8c.2.1.4.2.4.3.1.1.1.5-.1 1Z"/></svg></a>
+          <a href="tel:+77008702525" aria-label="Позвонить"><svg viewBox="0 0 24 24" fill="none"><path d="M5 3h3l2 5-2.5 1.5a11 11 0 0 0 5 5L19 14l2 5a2 2 0 0 1-2 2A16 16 0 0 1 3 5a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></a>
+        </div>
+      </div>
+      <div>
+        <div class="row" style="font-weight:800;opacity:1;margin-bottom:12px">Контакты</div>
+        <div class="row">Алматы, улица Коржын, дом 11</div>
+        <div class="row">+7 700 870 26 26</div>
+        <div class="row">+7 700 870 25 25</div>
+      </div>
+    </div>
+    <div class="row" style="margin-top:24px;opacity:.6">ТОО ФУДВЕНДИНГ, БИН 230940035379</div>
+    <div class="row" style="opacity:.6"><a class="link" href="https://olive.kz/docs/oferta">Оферта</a> и <a class="link" href="https://olive.kz/docs/politika">политика данных</a></div>
+  </div>
+</footer>
+
+<div class="sticky" id="sticky"><div class="t">День еды от 5 000 ₸</div><a class="btn" href="#order" data-cta="sticky">Заказать</a></div>
+
+<script>
+(function(){
+  var burger=document.getElementById('burger'),mm=document.getElementById('mmenu');
+  burger.addEventListener('click',function(){mm.classList.toggle('open');});
+  mm.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){mm.classList.remove('open');});});
+  document.querySelectorAll('.lang button').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.lang button').forEach(function(x){x.setAttribute('aria-pressed','false');});b.setAttribute('aria-pressed','true');});});
+  document.querySelectorAll('.cal').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.cal').forEach(function(x){x.setAttribute('aria-pressed','false');});b.setAttribute('aria-pressed','true');});});
+  var reveals=[].slice.call(document.querySelectorAll('.reveal'));
+  function revealCheck(){
+    for(var i=reveals.length-1;i>=0;i--){
+      if(reveals[i].getBoundingClientRect().top < window.innerHeight*0.9){
+        reveals[i].classList.add('in');reveals.splice(i,1);
+      }
+    }
+  }
+  revealCheck();
+  window.addEventListener('scroll',revealCheck,{passive:true});
+  window.addEventListener('resize',revealCheck,{passive:true});
+  window.addEventListener('load',revealCheck);
+  // ultimate failsafe: never leave a section invisible
+  setTimeout(function(){reveals.forEach(function(el){el.classList.add('in');});reveals.length=0;},2500);
+  var hero=document.querySelector('.hero'),sticky=document.getElementById('sticky');
+  new IntersectionObserver(function(e){sticky.classList.toggle('show',!e[0].isIntersecting);},{threshold:0}).observe(hero);
+})();
+</script>
+</body>
+</html>
