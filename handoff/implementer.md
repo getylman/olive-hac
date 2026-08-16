@@ -32,6 +32,14 @@ Then: `python3 tools/assemble.py` → `tools/validate.py` → `tools/qa.py <vers
 Full spec: `design/SKIN_V7.md`. Donor page: `research/donor-v7.html` (from
 github.com/dorab1/olive-hac). User directive: donor's look, our machinery.
 
+**Shipped as draft 1274** (preview https://olive.kz/l/gosura?v=1274, render saved to
+`research/preview-v1274.html`). Server QA: **47 passed / 0 failed / 2 warnings** — the two
+warnings are the deliberate evergreen understatements in 20-trust (live overview on save
+day: **734 customers / 1147 orders**; the strip says 700+ / 1 100+, still true). Verified
+in the server render: funnel pinned to #3F6B39, theme compiled --l-lime:#DCEBC4,
+root-relative hero image emitted, all 23 data-cta values (ours + the funnel's own,
+no collisions).
+
 - **The gs- token block MOVED: it now lives in `04-skin.json`, not `20-trust.json`.**
   04 also owns shared primitives (`.gs-sec/.gs-wrap/.gs-h2/.gs-lead/.gs-btn/.gs-imgbox/
   .gs-tag`) that sections 15–70 consume — dropping 04 unstyles half the page.
