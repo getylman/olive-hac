@@ -725,6 +725,48 @@ deliberately NOT ported for the smooth-scroll ask: external libs are banned, the
 own `scrollIntoView` would fight it, and `html{scroll-behavior:smooth}` (order-funnel.css:10)
 already smooths anchor jumps.
 
+## Dedup round (2026-08-16, orchestrator) — draft **1471**, qa 44/0/2 (permanent counter warns)
+
+User calls, all three about duplicated offer info:
+
+- **Hero has ONE subline now**: the tagline pill and the ration-range line merged into
+  `.gs-hero__sub` («Готовые рационы от 1 200 до 2 500 калорий каждый день с доставкой
+  по Алматы»); `.gs-hero__tag` markup and CSS deleted, entrance delays retimed.
+- **`20-personas.json` DELETED** («Рацион под вашу цель»): it sat directly after the funnel
+  and repeated the funnel's own plan cards 1:1, and its CTAs pointed back up. persona-*
+  data-cta values are gone with it (page inventory 25 → 21). Nothing referenced `#gsWho`.
+- **The funnel header is hidden, not removed**: «4 шага до здорового рациона» + the offer
+  card restated tariff info that gsPlans «Ваш тариф» owns at the page end («тариф в конце
+  по определению»). Rule in 09-zconfigurator hides `.of-hero`/`.of-offer` on the menu
+  screen; `hero_title` STAYS in 10-funnel.json because its <h1> is the page's only one
+  (qa.py enforces exactly one) and both nodes are static markup with no controls or data-*
+  logic (verified in preview-v1444). If a future round wants the h1 text changed, edit the
+  prop; do not empty it.
+
+## Focus round (2026-08-16, orchestrator) — draft **1473**, qa 45/0/2 (permanent counter warns)
+
+- **New fragment `85-focus.json` — funnel focus mode.** Once any screen other than "menu"
+  is active, a script hides every element that FOLLOWS #orderFunnel in document order
+  (collected by walking nextElementSibling chains up every ancestor level to body, footer
+  included) via `.gs-focus-hidden{display:none!important}`, and restores them on the way
+  back to screen 1. Detection is a MutationObserver on class flips inside the funnel —
+  read-only, nothing inside the form is touched. Degrades to current behaviour if JS dies.
+  Note: `.gs-summary` (80-orderbar) is among the hidden — intended, the funnel carries its
+  own bar past screen 1. Content ABOVE the funnel (hero) deliberately stays.
+- **Day menu is horizontal now**: `#orderFunnel .of-day__grid` flex row with x-snap,
+  cards `flex:0 0 156px` (190px ≥900px), in 09-zconfigurator. Beats the platform's 2-col
+  grid and its desktop twin by ID specificity. The in-card Swiper still works; platform's
+  `min-width:0` on .of-meal keeps it from inflating the row.
+- validate script advisories are now 5 (hero, marquee, dishes, orderbar, focus).
+- **Tilted-plane lesson (drafts 1478→1481):** a rotated strip inside overflow:hidden WILL
+  show a straight slice line at some viewport/zoom no matter how the vertical padding is
+  computed (rise = half track width × sin(angle) changes with width and browser zoom).
+  Padding math alone failed at ~1800px. The durable fix is two axis-aligned fade masks:
+  vertical fade on the clipping container, horizontal fade on a nested `.gs-hero__hmask`
+  wrapper — two single-mask elements compose everywhere with no mask-composite support
+  needed, and any clipped edge fades out before the cut. Keep both wrappers if the hero
+  is rebuilt.
+
 ### WP-W2 (2026-08-16) — `50-day.json`, the day timeline
 
 - **A subagent shell has no `$OLIVE_MCP_URL`** (it is not in `~/.bashrc`/`~/.profile` either),
