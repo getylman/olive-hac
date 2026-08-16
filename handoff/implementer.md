@@ -767,6 +767,27 @@ User calls, all three about duplicated offer info:
   needed, and any clipped edge fades out before the cut. Keep both wrappers if the hero
   is rebuilt.
 
+## Reorder round (2026-08-16, orchestrator) — assembled+validated; save pending an olive.kz 503 outage
+
+User's target order: hero → dishes → day → funnel-as-«Тариф» → FAQ, with the funnel being
+the merged «выбор тарифа + выбор меню» (small calorie pick, big day pick) and the old
+closer shrunk to a strip.
+
+- **Fragments renamed (git mv), funnel MOVED**: `40-dishes`→`15-dishes`, `45-marquee`→
+  `17-marquee` (kept as the divider after dishes), `50-day`→`20-day`, `10-funnel`→
+  `55-funnel`. Band discipline still holds: the real invariant is bands BEFORE the funnel
+  markup, and 05-09 < 55. 85-focus now hides faq/ask/closer/footer during ordering while
+  dishes/day above stay — consistent with the «дропнуть оставшуюся часть» call.
+- **15-dishes**: h2 «Меню дня» removed entirely, lead is now «Примеры меню с точным весом
+  и КБЖУ.» — the section opens with the lead alone.
+- **Screen 1 calorie cards went compact** (09-zconfigurator): padding 10/12, title/num
+  19px, price 13px, meta 11px. Screen 2's big duration chips are the «большой выбор дней».
+- **70-plans is a closing STRIP now** (`gs-plansmini`, id gsPlans kept): title + four mini
+  chips + one CTA, about a third of the old section. All data-cta values preserved
+  (plan-card-1/5/14/30, plans-order). Same verified price floors with «от».
+- olive.kz went full-site 503 mid-round (both MCP and the public page) — a background
+  retry loop ships the draft when it recovers. Config is assembled and validate-clean.
+
 ### WP-W2 (2026-08-16) — `50-day.json`, the day timeline
 
 - **A subagent shell has no `$OLIVE_MCP_URL`** (it is not in `~/.bashrc`/`~/.profile` either),
