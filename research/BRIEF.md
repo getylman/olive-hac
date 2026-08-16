@@ -3,6 +3,10 @@
 **Read this before doing anything.** It is verified fact pulled from the live MCP endpoint
 and the live page, not assumption.
 
+> For *what the contest asks for* — the task as stated, what it is not, how winning is
+> measured, and what remains unconfirmed — see **[TZ.md](TZ.md)** (Russian). This file covers
+> the technical ground truth; that one covers the assignment.
+
 ## 1. What the contest actually is
 
 We own one landing page: **https://olive.kz/l/gosura** (slug `gosura`).

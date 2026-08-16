@@ -4,8 +4,10 @@ We own one page: **https://olive.kz/l/gosura**. Olive drives paid ads to it and 
 whoever's page produces the most sales. So this repo is a **mobile conversion-rate project**,
 not a website build — the page is composed server-side from a fixed block registry over MCP.
 
-Start with **[research/BRIEF.md](research/BRIEF.md)** — verified ground truth (block registry,
-config format, business data, hard constraints). Everything else builds on it.
+Start with **[research/TZ.md](research/TZ.md)** — the assignment itself: what the contest asks
+for, what it is *not*, how winning is measured, and what is still unconfirmed. Then
+**[research/BRIEF.md](research/BRIEF.md)** — verified ground truth (block registry, config
+format, business data, hard constraints). Everything else builds on those two.
 
 ## Layout
 

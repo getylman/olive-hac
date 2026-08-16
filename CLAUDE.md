@@ -9,6 +9,9 @@ fixed block registry over an MCP endpoint — there is no filesystem deploy.
 
 ## Start here
 
+- `research/TZ.md` — **what the contest actually asks for** (in Russian), what it is *not*
+  (no proxy, no new site, no mobile mirror), how winning is measured, and what is still
+  unconfirmed. Read this first if you are new to the project.
 - `research/BRIEF.md` — **verified ground truth**: block registry, config format, business
   data, constraints. Read it before doing anything; don't re-derive what it states.
 - `.claude/skills/olive-landing/SKILL.md` — the ship loop (assemble → validate → draft → QA).
