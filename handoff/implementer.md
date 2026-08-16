@@ -581,3 +581,16 @@ lime in the bottom block.
 - **`window.scrollTo` on the live page is unreliable while the funnel is mounted** — the funnel
   calls `root.scrollIntoView()` on every screen change and pulls the viewport back. To inspect
   a section below it, hide the sections above instead of trying to scroll past them.
+
+## Desktop-zoom gap fix — 2026-08-16 (after draft 1367)
+
+- **`order-funnel.css:28` gives `.of` `min-height:70vh`.** Invisible at 390×844 (screen 1 is
+  taller than 70vh there), but the LK 4-column grid makes desktop screen 1 short, and browser
+  zoom-out grows the CSS viewport — so 70vh inflates into a blank band between the funnel and
+  gsDishes that widens with every zoom step (user-reported with a screenshot). Fix in
+  `09-zconfigurator.json`: `@media (min-width:900px){#orderFunnel{min-height:0}}` — desktop-only
+  so mobile keeps the platform's screen-switch reserve; the ID out-specifies `.of` regardless of
+  source order. If a future round rebuilds the funnel band, carry this rule or the gap returns.
+- The only other viewport-height rules in the platform CSS are modal `max-height`s and the
+  `.sf-filters` fixed overlay (`display:none` by default) — neither contributes to page flow, so
+  this one rule is the whole fix.
