@@ -768,3 +768,428 @@ and fails silently in the field; `:has()` support and Olive renaming funnel clas
 same failure shape. Mitigated by: markup anchors file:line-verified today (funnel-1058.html
 :425/:457/:500–540), base disabled styling not depending on `:has()`, and re-QA step 5's
 explicit interaction repros being **mandatory**, not optional, before any activation talk.
+
+---
+
+# Warm round — «по-домашнему»: three new sections over draft 1418
+
+Authority chain: `design/WARM_ROUND.md` (the spec — copy, contrast, visuals),
+`research/WARM_DATA.md` (dish data), `plan/ARCHITECTURE.md` "Warm round" (decisions
+W1–W5 + flags). Base: draft **1418** (`research/preview-v1418.html`). Four packages;
+WP-W1/W2/W3 are fully parallel (each owns exactly one NEW file, no existing fragment is
+edited — decision W2); WP-W4 runs last and is the sole writer of generated artifacts.
+
+## Shared rules for WP-W1..W3 (read once, they bind all three)
+
+- Fragment envelope: one JSON object
+  `{"type":"html","props":{"content":"<style class=\"gs-<name>-css\">…</style>\n<section …>…</section>"}}`.
+  The `<style>` tag's class must be the FIRST `gs-` class in the content — `tools/qa.py`
+  extracts the first `class="gs-…"` match as the render marker for the section.
+- `gs-` scoped selectors only; never `sf-`/`of-`/`l-`. No `<script>`, no `on*` handlers,
+  no ids other than the section's own anchor id. Colors only via `var(--gs7-*, #hex)` /
+  `var(--gs-*, fallback)` tokens from `04-skin.json` (the fragment must not redefine them).
+- **NO animation:** zero `transition`, `animation`, `@keyframes`. Hover/focus states are
+  instant color swaps. Do not suppress the UA focus outline.
+- **NO CSS `content:` declarations** (band-09 droppability rule). Decorative rules are
+  drawn as sized no-repeat `background-image` gradients (see WP-W2 spine); decorative
+  glyphs (✳) are markup characters with `aria-hidden="true"`.
+- **Images root-relative** `/meals_uploads/…` — `validate.py` hard-errors on
+  `<img src="https://…">` (its EXTERNAL_REF regex catches absolute src on media tags).
+  They 404 in the local preview — expected; they resolve on olive.kz.
+- **Zero em-dash (`—`) bytes anywhere in the file, comments included** — the acceptance
+  grep is byte-level. WARM_DATA lines use `—` as separators: never paste them wholesale.
+  Time ranges are «с 6:00 до 9:00», never with a dash.
+- Digit groups and unit phrases carry `&nbsp;`: «1&nbsp;237&nbsp;ккал»,
+  «от&nbsp;5&nbsp;000&nbsp;₸ в&nbsp;день», «1&nbsp;200».
+- Copy is Russian, verbatim from the specs below. Dish names and funnel goal labels are
+  **byte-verbatim** — do not normalize «Зеленый»→«Зелёный» or «запеченным»→«запечённым».
+- Every actionable element carries `data-cta` with exactly the value specced; add none.
+- Self-check WITHOUT touching generated files (never write `landing/config.json` — WP-W4
+  owns it): assemble into your scratchpad —
+  ```
+  python3 tools/assemble.py --out <scratchpad>/warm.json
+  python3 tools/validate.py <scratchpad>/warm.json          # 0 errors
+  python3 preview/render.py <scratchpad>/warm.json <scratchpad>/warm.html
+  ```
+  then read your section in `<scratchpad>/warm.html`. The 390×844 live check happens in
+  WP-W4; your render check is for markup/CSS sanity.
+- Contrast pairs you may use are only those listed in your WP (ratios from WARM_ROUND §1,
+  computed 2026-08-16). Lime `#C4F139` never carries white text. Gold `#E0A73C` appears
+  exactly once in the whole round (WP-W2's ✳ on deep) and nowhere else.
+
+---
+
+## WP-W1 — Persona cards: «Рацион под вашу цель»
+
+**Owns:** `landing/sections/20-personas.json` (new file; nothing else).
+
+**What it is:** four goal/scenario cards between the funnel and the dish carousel. The
+goal labels are the funnel's own plan-card CTAs, reused verbatim so the cards scent-match
+the configurator one screen up (verified in `research/preview-v1418.html` :757–819).
+
+**Data (fixed, verbatim — no MCP pull needed; re-verify only against the 1418 render):**
+
+| goal label | kcal | note (scenario voice, zero invented numbers) | price floor | data-cta |
+|---|---|---|---|---|
+| Похудей активно | 1 200 | Самый лёгкий рацион. Четыре блюда в день. | от 5 000 ₸ в день | `persona-1200` |
+| Похудей легко | 1 500 | Мягкий режим на каждый день. Четыре блюда в день. | от 5 500 ₸ в день | `persona-1500` |
+| Удержание формы | 1 800 | После зала и в офис. Пять блюд в день. | от 6 000 ₸ в день | `persona-1800` |
+| Набор массы | 2 500 | Самый плотный рацион. Шесть блюд в день. | от 6 500 ₸ в день | `persona-2500` |
+
+«от» is load-bearing: the floor is the halved 14/30-day rate; the funnel prints the
+identical strings. Never drop «от», never attach the floor to a duration.
+**No popularity badge on any card** — the platform's own «Популярное» badge sits on 1 500
+in the funnel while orders data says 1 200 leads; ours would duplicate or contradict it.
+
+**Markup (complete; JSON-encode into the envelope):**
+
+```html
+<style class="gs-who-css">…rules below…</style>
+<section class="gs-sec gs-who" id="gsWho">
+  <div class="gs-wrap gs-center">
+    <h2 class="gs-h2">Рацион под вашу цель</h2>
+    <p class="gs-lead">Нет времени готовить, после зала или обед в офис. Выберите цель, меню соберём мы.</p>
+    <div class="gs-who__grid">
+      <a class="gs-who__card" href="#orderFunnel" data-cta="persona-1200">
+        <span class="gs-who__goal">Похудей активно</span>
+        <span class="gs-who__kcal">1&nbsp;200 <small>ккал в день</small></span>
+        <span class="gs-who__note">Самый лёгкий рацион. Четыре блюда в день.</span>
+        <span class="gs-who__price">от&nbsp;5&nbsp;000&nbsp;₸ в&nbsp;день</span>
+        <span class="gs-who__go" aria-hidden="true">Выбрать →</span>
+      </a>
+      <!-- cards 2–4: same shape with the table's values;
+           kcal lines: 1&nbsp;500 / 1&nbsp;800 / 2&nbsp;500;
+           prices: от&nbsp;5&nbsp;500 / от&nbsp;6&nbsp;000 / от&nbsp;6&nbsp;500&nbsp;₸ в&nbsp;день -->
+    </div>
+  </div>
+</section>
+```
+
+**CSS (exact; mobile-first, desktop at ≥900px):**
+
+```css
+.gs-who{background:linear-gradient(180deg,var(--gs7-soft,#F4F8EE) 0,#fff 120px,#fff calc(100% - 120px),var(--gs7-soft,#F4F8EE) 100%)}
+.gs-who__grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:28px;text-align:left}
+.gs-who__card{display:flex;flex-direction:column;gap:6px;background:#fff;border:2px solid #E3E8DE;
+  border-radius:18px;padding:16px 14px;min-height:150px;text-decoration:none;
+  box-shadow:var(--gs-sh-card,0 14px 30px -18px rgba(32,39,26,.22))}
+.gs-who__card:hover,.gs-who__card:focus-visible{border-color:var(--gs7-green,#3F6B39)}
+.gs-who__goal{min-height:2.3em;font:800 1.0625rem/1.15 var(--gs-display,system-ui,sans-serif);
+  letter-spacing:-.02em;color:var(--gs7-ink,#20271A)}
+.gs-who__kcal{font:800 1.375rem/1 var(--gs-display,system-ui,sans-serif);
+  font-variant-numeric:tabular-nums;color:var(--gs7-green,#3F6B39)}
+.gs-who__kcal small{font:600 .75rem/1.2 var(--gs-text,sans-serif);color:var(--gs7-muted,#4E5748)}
+.gs-who__note{font:500 .8125rem/1.45 var(--gs-text,sans-serif);color:var(--gs7-muted,#4E5748)}
+.gs-who__price{font:700 .8125rem/1.35 var(--gs-text,sans-serif);color:var(--gs7-deep,#2C4E28)}
+.gs-who__go{margin-top:auto;font:700 .9375rem/1.3 var(--gs-text,sans-serif);color:var(--gs7-green,#3F6B39)}
+@media (min-width:900px){.gs-who__grid{grid-template-columns:repeat(4,1fr)}.gs-who__goal{font-size:1.1875rem}}
+```
+
+Rationale pinned in the spec: the gradient inserts a white breath between two soft
+neighbours (funnel above, dishes below) and dissolves both seams; `min-height:2.3em` on
+the goal keeps the four kcal lines aligned («Удержание формы» wraps at 171px); the whole
+card is the link (≈171×150px, far over the 44px target). No gold here.
+
+**Contrast budget (only these pairs):** ink/white 15.37 AAA; green/white 6.22 AA;
+muted/white 7.55 AAA; deep/white 9.43 AAA. Border `#E3E8DE` is the existing card-border
+hue (70-plans, 40-dishes) — no new hex anywhere.
+
+**Acceptance:**
+1. `python3 -c "import json;json.load(open('landing/sections/20-personas.json'))"` exits 0.
+2. `grep -c 'data-cta' landing/sections/20-personas.json` → 4; values exactly
+   `persona-1200|1500|1800|2500`; all four `href="#orderFunnel"`.
+3. `grep -cE 'transition|animation|@keyframes|content:' landing/sections/20-personas.json` → 0.
+4. `grep -c '—' landing/sections/20-personas.json` → 0; `grep -c 'https://' …` → 0.
+5. Goal labels byte-match the funnel's (`grep 'Похудей активно' research/preview-v1418.html`
+   confirms the reference); notes carry zero digits except the dish-count words spelled out.
+6. Scratch render: 2×2 grid at 390px, cards read goal→kcal→note→price→«Выбрать →».
+
+---
+
+## WP-W2 — Day timeline: «Один день с Olive»
+
+**Owns:** `landing/sections/50-day.json` (new file; nothing else).
+
+**What it is:** a vertical day-in-the-life timeline — one deep-green delivery card + four
+real meal cards from a verified real day (plan 5 · 1 200 ккал · 2026-08-20), closing with
+a day-total chip and a CTA. Sits between the green marquee ribbon (45) and the FAQ (60).
+
+**Data — verbatim from `research/WARM_DATA.md`, images converted to root-relative:**
+
+| приём | блюдо (byte-verbatim) | facts line | img |
+|---|---|---|---|
+| Завтрак | Кесадилья с яичным паштетом | `459&nbsp;ккал · 230&nbsp;г · Б36 Ж18 У39` | `/meals_uploads/6b650fd8-d551-4785-b7a5-78fdd7fd714e.png` |
+| Обед | Куриная грудинка с запеченным картофелем | `318&nbsp;ккал · 230&nbsp;г · Б37 Ж11 У18` | `/meals_uploads/af1732f8-646f-4451-b7b7-c2dab279ff87.png` |
+| Полдник | Зеленый салат с брокколи и цитрусами | `97&nbsp;ккал · 85&nbsp;г · Б1 Ж8 У5` | `/meals_uploads/7065d577-c00b-47b4-a370-a2fe47511c40.png` |
+| Ужин | Поке с курицей | `363&nbsp;ккал · 285&nbsp;г · Б13 Ж23 У27` | `/meals_uploads/319ac4ae-4842-4ce3-b17c-310e34afdc4e.png` |
+
+Day total **1 237** = 459+318+97+363 (sum of verified figures). **No date in visible
+copy.** Provenance goes into an HTML comment at the top of the section (dash-free), e.g.:
+`<!-- Данные: план 5 (1 200 ккал), день 2026-08-20, research/WARM_DATA.md. Сумма: 459+318+97+363 = 1237. -->`
+
+**Copy (final, verbatim):** H2 «Один день с Olive»; lead «Так выглядит день на рационе
+1&nbsp;200&nbsp;ккал. Настоящее меню, вес и КБЖУ у каждого блюда.»; delivery card time
+label «Утро, с 6:00 до 9:00», body «Курьер привозит сумку с едой на день. Слоты доставки:
+с 6:00 до 9:00 и с 20:00 до 22:00.» (the two slots are the funnel's own `data-start/end`
+values — the only real times on the page; never invent per-meal times); total chip «Итого
+за день: 1&nbsp;237&nbsp;ккал»; CTA «Собрать свой день».
+
+**Markup (complete; JSON-encode into the envelope):**
+
+```html
+<style class="gs-day-css">…rules below…</style>
+<section class="gs-sec gs-day" id="gsDay">
+  <div class="gs-wrap">
+    <div class="gs-center">
+      <h2 class="gs-h2">Один день с Olive</h2>
+      <p class="gs-lead">Так выглядит день на рационе 1&nbsp;200&nbsp;ккал. Настоящее меню, вес и КБЖУ у каждого блюда.</p>
+    </div>
+    <ol class="gs-day__line" role="list">
+      <li class="gs-day__stop">
+        <span class="gs-day__dot" aria-hidden="true"></span>
+        <div class="gs-day__card gs-day__card--start">
+          <span class="gs-day__time"><span class="gs-day__spark" aria-hidden="true">&#10035;</span>Утро, с 6:00 до 9:00</span>
+          <p class="gs-day__text">Курьер привозит сумку с едой на день. Слоты доставки: с 6:00 до 9:00 и с 20:00 до 22:00.</p>
+        </div>
+      </li>
+      <li class="gs-day__stop">
+        <span class="gs-day__dot" aria-hidden="true"></span>
+        <article class="gs-day__card">
+          <img class="gs-day__img" src="/meals_uploads/6b650fd8-d551-4785-b7a5-78fdd7fd714e.png"
+               alt="Кесадилья с яичным паштетом" width="340" height="250" loading="lazy" decoding="async">
+          <div class="gs-day__body">
+            <span class="gs-day__meal">Завтрак</span>
+            <h3 class="gs-day__name">Кесадилья с яичным паштетом</h3>
+            <p class="gs-day__facts">459&nbsp;ккал · 230&nbsp;г · Б36 Ж18 У39</p>
+          </div>
+        </article>
+      </li>
+      <!-- Обед, Полдник, Ужин: identical shape with the table's values -->
+    </ol>
+    <div class="gs-day__total">
+      <span class="gs-day__sum">Итого за день: 1&nbsp;237&nbsp;ккал</span>
+      <a class="gs-btn gs-btn--big" href="#orderFunnel" data-cta="day-order">Собрать свой день</a>
+    </div>
+  </div>
+</section>
+```
+
+`<ol role="list">` restores list semantics that `list-style:none` drops in Safari/VO.
+Meal cards are **not links** — the one action is the CTA. `loading="lazy"` is correct here
+(vertical, below the fold) — unlike the carousel, where lazy is banned.
+
+**CSS (exact):**
+
+```css
+.gs-day{background:linear-gradient(180deg,var(--gs7-spring,#DCEBC4) 0,var(--gs7-spring,#DCEBC4) calc(100% - 96px),var(--gs7-soft,#F4F8EE) 100%)}
+.gs-day__line{list-style:none;margin:28px 0 0;padding:0 0 0 26px;display:flex;flex-direction:column;gap:14px;
+  background:linear-gradient(rgba(44,78,40,.28),rgba(44,78,40,.28)) 7px 0/2px 100% no-repeat}
+.gs-day__stop{position:relative}
+.gs-day__dot{position:absolute;left:-25px;top:22px;width:14px;height:14px;border-radius:50%;
+  background:var(--gs7-green,#3F6B39);box-shadow:0 0 0 3px rgba(255,255,255,.85)}
+.gs-day__card{background:#fff;border-radius:var(--gs-r-card,22px);border:1px solid rgba(32,39,26,.08);
+  box-shadow:var(--gs-sh-card,0 14px 30px -18px rgba(32,39,26,.22));display:flex;gap:12px;padding:12px;align-items:center}
+.gs-day__img{width:96px;height:71px;border-radius:12px;object-fit:cover;flex:0 0 auto;background:var(--gs7-soft,#F4F8EE)}
+.gs-day__body{display:flex;flex-direction:column;gap:4px;min-width:0}
+.gs-day__meal{align-self:flex-start;background:var(--gs7-spring,#DCEBC4);color:var(--gs7-deep,#2C4E28);
+  border-radius:999px;padding:3px 10px;text-transform:uppercase;letter-spacing:.04em;font:700 11px/1.3 var(--gs-text,sans-serif)}
+.gs-day__name{margin:0;font:700 1rem/1.3 var(--gs-text,sans-serif);color:var(--gs7-ink,#20271A)}
+.gs-day__facts{margin:0;font:600 .8125rem/1.4 var(--gs-text,sans-serif);color:var(--gs7-muted,#4E5748);font-variant-numeric:tabular-nums}
+.gs-day__card--start{background:var(--gs7-deep,#2C4E28);flex-direction:column;align-items:flex-start;gap:6px;padding:16px}
+.gs-day__time{display:inline-flex;align-items:center;gap:8px;color:var(--gs7-spring,#DCEBC4);
+  font:800 .9375rem/1.3 var(--gs-display,system-ui,sans-serif)}
+.gs-day__spark{color:var(--gs7-gold,#E0A73C);font-size:12px}
+.gs-day__text{margin:0;color:#fff;font:500 .9375rem/1.5 var(--gs-text,sans-serif)}
+.gs-day__total{display:flex;flex-direction:column;gap:14px;align-items:center;margin-top:26px}
+.gs-day__sum{background:#fff;border-radius:999px;padding:10px 18px;color:var(--gs7-deep,#2C4E28);
+  font:800 1.0625rem/1.3 var(--gs-display,system-ui,sans-serif);font-variant-numeric:tabular-nums;
+  box-shadow:var(--gs-sh-card,0 14px 30px -18px rgba(32,39,26,.22))}
+@media (max-width:560px){.gs-day__total .gs-btn{width:100%}}
+@media (min-width:900px){
+  .gs-day__line{margin:28px auto 0}
+  .gs-day__line,.gs-day__total{max-width:640px}
+  .gs-day__total{margin-left:auto;margin-right:auto}
+  .gs-day__img{width:116px;height:85px}}
+```
+
+Mechanism notes (decisions, do not re-derive): the **spine is a background gradient, not
+`::before`** — a rendered pseudo needs `content:`, which is banned outside band 09
+(ARCHITECTURE decision W4). Geometry: `<ol>` pads 26px; the 2px spine sits at x=7px of the
+ol's padding box; the 14px dot centers on it at `left:-25px` relative to each `li`. The
+section gradient is the round's spring wash: strong 4.96 seam against the green marquee
+above, deliberate fade into the FAQ's soft below. `width/height` attrs + the soft
+`background` on `.gs-day__img` make a future image 404 degrade to a clean tile (menu
+rotation risk, WARM_ROUND §7). Desktop stays a vertical centered 640px timeline — a
+5-across horizontal layout was evaluated and rejected in the spec.
+
+**Contrast budget (only these pairs):** ink/white-card 15.37; muted facts/white-card 7.55;
+meal chip deep/spring 7.51; time label spring/deep 7.51; body white/deep 9.43; dot
+green/spring 4.96 (≥3:1 UI mark); ✳ gold/deep 4.38 (aria-hidden decor — **the round's
+entire gold budget**); sum chip deep/white 9.43; CTA white/green 6.22.
+
+**Acceptance:**
+1. JSON parses; `grep -c 'data-cta' landing/sections/50-day.json` → 1 (`day-order`).
+2. Dish names, masses, kcal, Б/Ж/У byte-match the table (and WARM_DATA); the total prints
+   only as «1&nbsp;237»; the string `2026-08-20` appears ONLY inside the HTML comment.
+3. `grep -c 'https://olive.kz' landing/sections/50-day.json` → 0 (4 root-relative
+   `/meals_uploads/` paths); every `img` has `alt` = dish name, `width="340"
+   height="250" loading="lazy" decoding="async"`.
+4. `grep -cE 'transition|animation|@keyframes|content:' …` → 0; `grep -c '—' …` → 0.
+5. Exactly one `&#10035;` (✳) in the fragment, inside `.gs-day__spark`, `aria-hidden`.
+6. Scratch render: spine + dots visible, delivery card deep with spring time label, cards
+   white; images show as clean soft tiles (404 locally is expected).
+
+---
+
+## WP-W3 — WhatsApp closer: «Остались вопросы?»
+
+**Owns:** `landing/sections/65-ask.json` (new file; nothing else).
+
+**What it is:** a spring card attached to the FAQ's soft section — the human fallback
+after objections and the payment-anxiety lever before the price block (43% of orders die
+at `pending_payment`; a reachable human is an on-page trust signal). Fully self-contained:
+it consumes only 04-skin tokens/primitives; **do not touch 60-faq.json or 04-skin.json**
+(ARCHITECTURE decision W2).
+
+**Copy (final, verbatim):** title «Остались вопросы?»; text «Напишите нам в WhatsApp.
+Поможем выбрать рацион и ответим про доставку.» (no response-time claim — unverified);
+button «Написать в WhatsApp»; phone plain text «+7&nbsp;700&nbsp;870-26-26». Number
+verified in the 1418 render (footer `wa.me/77008702626`, render :1963).
+
+**Markup (complete; JSON-encode into the envelope):**
+
+```html
+<style class="gs-ask-css">…rules below…</style>
+<section class="gs-ask">
+  <div class="gs-wrap">
+    <div class="gs-ask__card">
+      <span class="gs-ask__icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 3a9 9 0 0 0-7.8 13.5L3 21l4.7-1.2A9 9 0 1 0 12 3Z" stroke="#3F6B39" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="12" r="1.6" fill="#3F6B39"/><circle cx="8.4" cy="12" r="1.6" fill="#3F6B39"/><circle cx="15.6" cy="12" r="1.6" fill="#3F6B39"/></svg></span>
+      <div class="gs-ask__body">
+        <h2 class="gs-ask__title">Остались вопросы?</h2>
+        <p class="gs-ask__text">Напишите нам в WhatsApp. Поможем выбрать рацион и ответим про доставку.</p>
+      </div>
+      <a class="gs-btn gs-ask__btn" href="https://wa.me/77008702626" target="_blank" rel="noopener" data-cta="faq-whatsapp">Написать в WhatsApp</a>
+      <span class="gs-ask__phone">+7&nbsp;700&nbsp;870-26-26</span>
+    </div>
+  </div>
+</section>
+```
+
+The `wa.me` anchor is legal: validate.py's EXTERNAL_REF matches `src/href` only on
+media/embed tags, never `<a>` (regex read 2026-08-16; the footer already links wa.me).
+An `h2` is fine — qa.py enforces exactly one `h1`, and it belongs to the funnel.
+
+**CSS (exact):**
+
+```css
+.gs-ask{background:var(--gs7-soft,#F4F8EE);padding:0 0 56px}
+.gs-ask__card{background:var(--gs7-spring,#DCEBC4);border-radius:var(--gs-r-big,26px);padding:24px 20px;
+  display:flex;flex-direction:column;gap:12px;align-items:flex-start;max-width:560px;margin:0 auto;
+  box-shadow:var(--gs-sh-card,0 14px 30px -18px rgba(32,39,26,.22))}
+.gs-ask__icon{width:44px;height:44px;border-radius:50%;background:#fff;display:inline-flex;align-items:center;justify-content:center}
+.gs-ask__body{display:flex;flex-direction:column;gap:6px}
+.gs-ask__title{margin:0;font:800 1.375rem/1.1 var(--gs-display,system-ui,sans-serif);
+  letter-spacing:-.02em;color:var(--gs7-deep,#2C4E28)}
+.gs-ask__text{margin:0;font:500 .9375rem/1.5 var(--gs-text,sans-serif);color:var(--gs7-ink,#20271A)}
+.gs-ask__phone{font:700 .9375rem/1.3 var(--gs-text,sans-serif);color:var(--gs7-deep,#2C4E28);font-variant-numeric:tabular-nums}
+@media (max-width:560px){.gs-ask__btn{width:100%}}
+```
+
+Mechanism notes: **zero top padding** makes the card read as the FAQ's own closing element
+— the FAQ is the page's only `l-section--soft` and its `#F4F8EE` equals `--gs7-soft`, so
+the merge is pure ground identity (intentional, one visual unit). The button is the shared
+`.gs-btn` — OUR green `#3F6B39`: white on WhatsApp brand `#25D366` is **1.98, banned**,
+and an off-palette green would be the page's only alien hue. The spring card's weak 1.17
+edge on soft is carried by radius + shadow, per the spec.
+
+**Contrast budget (only these pairs):** title deep/spring 7.51 AAA; text ink/spring 12.24
+AAA; phone deep/spring 7.51; button white/green 6.22 AA; icon strokes green/white 6.22.
+
+**Acceptance:**
+1. JSON parses; `grep -c 'data-cta' landing/sections/65-ask.json` → 1 (`faq-whatsapp`);
+   the link is `https://wa.me/77008702626` with `target="_blank" rel="noopener"`.
+2. `grep -c '25D366' …` → 0 (never WhatsApp brand green).
+3. `grep -cE 'transition|animation|@keyframes|content:' …` → 0; `grep -c '—' …` → 0.
+4. Inline SVG only, `aria-hidden`, no external assets; phone is plain text (no `tel:`
+   link — an uninstrumented anchor would be invisible to metrics).
+5. Scratch render: card sits centered on soft ground directly under the FAQ with no white
+   band between them.
+
+---
+
+## WP-W4 — Assembly, draft, QA (RUNS LAST; sole writer of generated artifacts)
+
+**Owns:** `landing/config.json` (generated), `research/preview-v<vid>.html` (server
+render). May append to `handoff/implementer.md` (shared, append-only).
+
+**Steps:**
+1. Preflight the trio (their own acceptance greps, batch form):
+   ```
+   for f in landing/sections/20-personas.json landing/sections/50-day.json landing/sections/65-ask.json; do
+     python3 -c "import json;json.load(open('$f'))" &&
+     grep -cE 'transition|animation|@keyframes|content:' $f;
+     grep -c '—' $f; grep -c 'https://olive.kz' $f;
+   done   # greps must print 0 for every file
+   ```
+2. `python3 tools/assemble.py` → **18 sections**, printed type order exactly:
+   `html ×9 (03,04,05,06,07,08-prefs,08-tapfix,09-pseudo,09-zconfigurator), order_funnel,
+   html (20), html (40), html (45), html (50), faq (60), html (65), html (70), html (80)`.
+3. `python3 tools/validate.py landing/config.json` → **0 errors** (expected warnings:
+   the deliberate sf-/of- restyle notes and not-found override selectors, same set as 1418).
+4. Re-verify the four gs-day images are live (browser UA, WAF 403s default agents):
+   ```
+   for id in 6b650fd8-d551-4785-b7a5-78fdd7fd714e af1732f8-646f-4451-b7b7-c2dab279ff87 \
+             7065d577-c00b-47b4-a370-a2fe47511c40 319ac4ae-4842-4ce3-b17c-310e34afdc4e; do
+     curl -sS -o /dev/null -w "%{http_code} $id\n" -A "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1" \
+       "https://olive.kz/meals_uploads/$id.png"
+   done   # all 200
+   ```
+5. `export OLIVE_MCP_URL=…` then save (or use `tools/ship.sh -l "…" <token|url>`):
+   ```
+   ./tools/olive.py save gosura landing/config.json --label "warm round: personas + day + ask" --status draft
+   ```
+   Record vid + preview_url. **Draft only. Never activate. Live stays 871.**
+6. `python3 tools/qa.py <vid> --save` → 0 failures. Expected warnings: the permanent
+   counter warns (customers/orders figures are deliberately not on the page), as on 1418
+   (42/0/2). Save the server render as `research/preview-v<vid>.html` (curl the
+   preview_url with the browser UA above).
+7. Server-render assertions (on the saved render):
+   - `data-cta` inventory = **25**: the 19 of 1418 plus `day-order`, `persona-1200`,
+     `persona-1500`, `persona-1800`, `persona-2500`, `faq-whatsapp`.
+   - The four dish names, masses, kcal and Б/Ж/У byte-match WP-W2's table; «1 237»
+     appears in the sum chip; `2026-08-20` absent from visible text (comment only).
+   - Goal labels byte-match the funnel's own plan cards (both sets present).
+   - Section DOM order: `#gsWho` after `#orderFunnel`; `#gsDay` after `.gs-marquee`;
+     `.gs-ask` directly after the FAQ's `l-section--soft`; `#gsPlans` after `.gs-ask`.
+   - Still exactly one `<h1>`.
+8. **Browser pass, 390×844** (WARM_ROUND §6.8 + §5): no horizontal scroll; card text
+   ≥13px; seams read per the placement map (spring wash fades, no hard spring/soft butt
+   joints; ask card merges with FAQ); `wa.me` opens the chat with the number prefilled;
+   gs-day images lazy-load below the fold; funnel and summary bar unaffected (body
+   bottom padding unchanged — new sections add no fixed elements). Also ≥900px: personas
+   4-across, day timeline centered at 640px.
+9. Report vid, preview URL, QA result to the user. Activation is the user's decision.
+
+**Acceptance:** steps 2–7 all green; the only QA warnings are the known permanent ones;
+report filed.
+
+## Dependency & conflict map (warm round)
+
+| WP | files written | depends on |
+|---|---|---|
+| W1 | `landing/sections/20-personas.json` | — |
+| W2 | `landing/sections/50-day.json` | — |
+| W3 | `landing/sections/65-ask.json` | — |
+| W4 | `landing/config.json` (generated), `research/preview-v<vid>.html` | W1+W2+W3 |
+
+No two packages write the same file; no existing fragment is edited this round. W1–W3
+fully parallel. W4 last.
+
+**Biggest risk of the round:** the gs-day dishes are real but the visible day menu
+rotates, and `/meals_uploads/` files could someday be pruned — the copy therefore stays
+evergreen («реальное меню одного дня», no date) and every image degrades to a clean soft
+tile (width/height + background). Second-order: both gradients are neighbour-tuned
+(green-above/soft-below for gs-day; soft-above-and-below for gs-who) — any future section
+re-order invalidates the §5 seam table and must re-derive it. Third: copy discipline —
+the acceptance checks are byte-level (dish names without «ё», «от» in every price floor,
+zero em dashes), so an implementer "improving" orthography fails the round.

@@ -1,7 +1,7 @@
 # Handoff — landing-implementer
 
 **Owner:** `.claude/agents/landing-implementer.md` (Opus)
-**Last updated:** 2026-08-16 · after the v7-skin port (donor visual round)
+**Last updated:** 2026-08-16 · warm round (WP-W1 personas, WP-W2 day timeline)
 
 Living state for the implementation role. Read at the start of a run; update at the end.
 Record gotchas that cost you time — that is what this file is for.
@@ -594,3 +594,134 @@ lime in the bottom block.
 - The only other viewport-height rules in the platform CSS are modal `max-height`s and the
   `.sf-filters` fixed overlay (`display:none` by default) — neither contributes to page flow, so
   this one rule is the whole fix.
+
+## Warm-round planning notes — 2026-08-16 (architect; spec design/WARM_ROUND.md, WPs "Warm round")
+
+- **`<a href="https://wa.me/…">` passes validate.py; `<img src="https://…">` does not.**
+  EXTERNAL_REF matches src/srcset/poster/data/href only on media/embed tags
+  (`img|iframe|source|video|audio|embed|object|track|input`) plus `<script src>`/`<link href>`
+  — plain anchors are exempt (regex read, tools/validate.py:70-77). Olive's own dish images
+  must therefore be root-relative `/meals_uploads/…`; they 404 in the local preview and
+  resolve on olive.kz.
+- **A rendered `::before/::after` needs a `content:` declaration** — and `content:` is
+  banned outside `09-pseudo.json` (droppable-band rule). Decorative lines go in as sized
+  no-repeat background gradients instead, e.g. the gs-day spine:
+  `background:linear-gradient(rgba(44,78,40,.28),rgba(44,78,40,.28)) 7px 0/2px 100% no-repeat`
+  on the `<ol>`. (45-marquee's `content:"\2733"` predates the warm round and is
+  grandfathered — don't copy that pattern.)
+- **qa.py identifies an `html` section by the FIRST `class="gs-…"` in its content** — keep
+  the `<style class="gs-<name>-css">` tag first in the fragment so the marker is stable.
+- **Verify without writing generated files:** `python3 tools/assemble.py --out <scratch>/x.json`
+  then validate + `preview/render.py <scratch>/x.json <scratch>/x.html`. Only the final
+  assembly WP writes `landing/config.json`.
+- **Warm-round copy acceptance is byte-level:** zero `—` bytes per new fragment (comments
+  included — keep even CSS/HTML comments dash-free), dish names byte-verbatim from
+  WARM_DATA (no «ё» fixes: «Зеленый», «запеченным»), «от» kept in every persona price
+  floor. WARM_DATA.md itself uses `—` as a field separator — never paste its lines wholesale.
+- **gs-day images: `loading="lazy"` is correct** (vertical, below the fold) — the opposite
+  of the carousel rule. Keep `width="340" height="250"` + `background:#F4F8EE` on the img
+  so a future 404 degrades to a clean tile.
+
+### WP-W1 (2026-08-16) — `20-personas.json`, gs-who persona cards
+
+- **New owner row:** `landing/sections/20-personas.json` (`<style class="gs-who-css">` first, then
+  `<section class="gs-sec gs-who" id="gsWho">`). Four cards, `data-cta="persona-1200|1500|1800|2500"`,
+  every card a whole-card `<a href="#orderFunnel">`. `gsWho` collides with nothing: the only `gs*` ids
+  in the 1418 render are `gsDishes` and `gsPlans`.
+- Goal labels and price floors were re-verified byte-for-byte against `research/preview-v1418.html`
+  :757-819 (`of-plan__cta` / `of-plan__price`): «Похудей активно / Похудей легко / Удержание формы /
+  Набор массы» and «от 5 000 / 5 500 / 6 000 / 6 500 ₸». Dish counts in the notes match the funnel's
+  own `of-plan__meta` lines (4 / 4 / 5 / 6 блюд) and are spelled out, so the notes carry zero digits.
+- **`grep -c` acceptance criteria in a WP are line counts, not occurrence counts.** WP-W1 asks for
+  `grep -c 'data-cta' <fragment>` → 4, which is **unsatisfiable by construction**: a JSON string
+  cannot contain a raw newline, so every fragment's whole `content` is one physical line and the
+  answer is always 1. Use `grep -o … | wc -l` (or a python check) for occurrence counts. The
+  `→ 0` criteria (`transition|animation|@keyframes|content:`, `—`, `https://`) are unaffected —
+  0 lines and 0 occurrences agree.
+- **`justify-content:` is banned in the warm-round bands, not just the linting of it.** The
+  no-`content:` acceptance grep here is a plain substring, so a single `justify-content` would fail
+  the file. Use `align-items`/`margin-top:auto` instead (the WP CSS already does).
+- Comments count too: keep the CSS comment free of `—`, `https://`, and the words
+  `transition`/`animation`/`@keyframes` (I wrote "no motion of any kind" instead).
+- **The price string differs between the two specs.** WARM_ROUND §3.3 writes
+  `от 5&nbsp;000&nbsp;₸ в&nbsp;день` (plain space after «от»); WORK_PACKAGES WP-W1 markup and the
+  shared «Digit groups» rule both write `от&nbsp;5&nbsp;000&nbsp;₸ в&nbsp;день`. Shipped the
+  WORK_PACKAGES form (identical rendering, and it also stops «от» ending a line). If a future round
+  diffs against WARM_ROUND, this is not a typo.
+- `.gs-who{background:linear-gradient(…)}` and `.gs-sec{background:#fff}` are both (0,1,0); the
+  gradient wins only because fragment 20 assembles after `04-skin`. Any future skin rule that raises
+  `.gs-sec` specificity kills the soft→white→soft wash silently.
+- Self-check without touching generated files worked exactly as the shared rule describes:
+  `tools/assemble.py --out <scratch>/warm.json` → validate **0 errors / 10 warnings** (all
+  pre-existing: 2 duplicate-prefix, 7 sf/of + script advisories, 1 permanent override warn) →
+  `preview/render.py`. `landing/config.json` md5 unchanged. `qa.py --file … --config …` on the local
+  render: `PASS sections[10] html .gs-who-css rendered` and all four persona values in the
+  14-value `data-cta` inventory; its 10 FAILs are the documented local-render artifacts (funnel
+  placeholder, `window.__GSP_OVERRIDES` instead of `var rules`).
+
+### WP-W3 (2026-08-16) — `65-ask.json`, the WhatsApp closer
+
+- **Two of the WP's own acceptance greps contradict its own "exact" CSS.** Both resolved in
+  favour of the mechanical gate, intent preserved:
+  1. `grep -cE 'transition|animation|@keyframes|content:' → 0` vs the specced
+     `.gs-ask__icon{…display:inline-flex;justify-content:center}`. Shipped
+     `display:grid;place-items:center` instead — same 24px glyph centred in the 44px white
+     circle, zero `content:` substrings. **Any warm-round fragment that centres with
+     `justify-content` will "fail" the WP-W4 preflight grep**; use `place-items`, or expect
+     the false positive (same class of trap as the round-2 note above).
+  2. `grep -c '25D366' → 0` while the reason *not* to use WhatsApp brand green belongs in
+     the block comment. The comment names it in words only, never as a hex.
+- **The local preview understates the FAQ merge; the server render does not.**
+  `preview/render.py:135` emits the `faq` block as `<section class="l-section">` (no
+  `--soft`), but the server emits `l-section l-section--soft`
+  (`research/preview-v1418.html:1648`, ground `#F4F8EE` from `meta.theme.bgSoft`). So the
+  local scratch render shows a white→soft seam directly above `.gs-ask` that **does not
+  exist on olive.kz**. Never "fix" a soft-on-soft seam from a local screenshot — WP-W3
+  acceptance item 5 is checkable on the server render only.
+- Data re-verified against the 1418 server render rather than trusted from the spec:
+  `https://wa.me/77008702626` (:1963) and visible `+7 700 870-26-26` (:1968, ASCII hyphens,
+  hexdumped). `data-cta="faq-whatsapp"` collides with nothing — the 1418 inventory is
+  exactly 19 values.
+- `font-variant-numeric:tabular-nums` is declared **after** the `font:` shorthand here, on
+  purpose. `40-dishes.json` still has it before the shorthand, where the shorthand resets it.
+- Scratch check (no generated file touched): assemble `--out` scratchpad → 17 sections
+  (20-personas had landed, 50-day had not), validate **0 errors / 10 warnings, exit 0**;
+  65-ask contributes no warning of its own, and `landing/config.json` md5 was identical
+  before and after.
+
+### WP-W2 (2026-08-16) — `50-day.json`, the day timeline
+
+- **A subagent shell has no `$OLIVE_MCP_URL`** (it is not in `~/.bashrc`/`~/.profile` either),
+  so `olive.py call meals` is unavailable inside a delegated run. Plan dish verification around
+  the **public, unauthenticated** endpoints instead — both answer with a browser UA:
+  - `GET /api/meal-plans/<plan>/day/<iso>` → per-slot `id/type/name/mass/kcal/images` **and a
+    day-level `total_kcal`**. That field made the gs-day total a *reported* number, not our
+    arithmetic: it returns exactly `1237` for plan 5 · 2026-08-20, matching 459+318+97+363.
+  - `GET /api/day-meals/<slotId>/replacements` (funnel js:790) → for every replacement
+    candidate a full `{mass,kcal,proteins,fats,carbohydrates,images}`. **This is the only
+    token-free source of Б/Ж/У I found**, and it re-confirmed WARM_DATA for «Кесадилья с
+    яичным паштетом» (Б36 Ж18 У39) and «Куриная грудинка с запеченным картофелем»
+    (Б37 Ж11 У18). Sweeping plans 5–8 × 2026-08-17..26 (190 slots) never surfaced «Поке с
+    курицей» or «Зеленый салат с брокколи и цитрусами» — a *scheduled* dish is not offered in
+    its own replacement pool, so those two Б/Ж/У pairs still trace only to WARM_DATA's `meals`
+    dump. Fine for this round; re-pull `meals` before activation if you want 4/4 fresh.
+  - The four `/meals_uploads/` PNGs are live (200) and their intrinsic size really is
+    **340×250**, so the specced `width="340" height="250"` attrs are the true aspect ratio.
+- **Keep provenance dates out of `<style>` comments.** WP-W2 acceptance reads literally: «the
+  string `2026-08-20` appears ONLY inside the HTML comment». My first cut documented the live
+  re-verification in the CSS comment and would have failed that grep with zero copy problems.
+  All date-bearing prose now lives in the `<!-- … -->` block inside `<section>`; the CSS
+  comment carries mechanics + the contrast table only.
+- Spine geometry (decision W4, background gradient instead of `::before`) checks out
+  arithmetically: `<ol>` padding-left 26px, background-position `7px` is against the padding
+  box, so the 2px rule spans x=7..9 and the 14px dot at `left:-25px` inside a full-width `li`
+  spans x=1..15 — both centred on x=8. No pseudo-element, no `content:`.
+- `justify-content` never appears in this fragment (WP-W3's trap): the two centred rows use
+  `align-items` only, so the WP-W4 `content:` preflight grep is clean at 0.
+- **No usable headless browser in the sandbox**: `firefox --headless --screenshot` hangs to
+  timeout even with a fresh `-profile`, and there is no chromium/chrome. A delegated
+  implementer cannot do the 390×844 visual pass; markup/CSS review + the scratch render are
+  the ceiling, and the browser check belongs to the assembly WP.
+- Scratch check (no generated file touched): assemble `--out` scratchpad → 18 sections,
+  validate **0 errors / 10 warnings, exit 0**; 50-day contributes no warning of its own
+  (no `sf-`/`of-` selectors, no `<script>`), and `landing/config.json` was never written.

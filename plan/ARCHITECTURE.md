@@ -249,3 +249,95 @@ Never `landing_activate`, never `--status active`. No fabricated numbers, review
 medical claims. Never restructure `#orderFunnel` / `.of` / `.sf-form` (style/text/addClass
 only; no `html` overrides there; no scripts writing into the form). Validate before every
 save: `python3 tools/validate.py landing/config.json`.
+
+---
+
+# Warm round — architecture decisions (2026-08-16, over draft 1418)
+
+Spec authority: `design/WARM_ROUND.md` (design auditor, same day). Data authority:
+`research/WARM_DATA.md` (chosen day: plan 5 · 2026-08-20). Build plan:
+`plan/WORK_PACKAGES.md` "Warm round" (WP-W1..W4). Base draft: **1418**
+(`research/preview-v1418.html`).
+
+## Decision W1 — Section order: adopt WARM_ROUND §5 unchanged; three free slots, zero renumbering
+
+`03 hero → 04 skin → 05–09 funnel bands → 10 funnel → **20-personas** → 40 dishes →
+45 marquee → **50-day** → 60 faq → **65-ask** → 70 plans → 80 orderbar`.
+
+Evidence the seam map holds against the *actual* page (not just the spec's claims):
+- Funnel ground is soft `#F4F8EE` — `05-style.json` sets `--of-bg:#F4F8EE` and
+  `order-funnel.css` paints `.of{background:var(--of-bg)}`. So gs-who's gradient top
+  (soft) is continuous with the band above at 390px.
+- 40-dishes is `gs-sec--soft`; 45-marquee is a green `#3F6B39` ribbon; the FAQ is the
+  page's only `l-section l-section--soft` (`--l-bg-soft:#F4F8EE` from `meta.theme.bgSoft`,
+  render :1648); 70-plans is white `gs-sec`. Every seam ratio in WARM_ROUND §1/§5 was
+  computed against exactly these grounds.
+- Slots 20/50/65 are free (`ls landing/sections/`), and `assemble.py` sorts fragments
+  lexicographically, so the three new files land in the intended positions with no edit
+  to any existing fragment.
+
+Narrative for the cold mobile visitor: attention (hero) → action (funnel) → self-ID
+pushing back to action (personas) → proof-breadth (dishes) → facts (marquee) →
+proof-depth/warmth (day) → objections (faq) → human fallback (ask/WhatsApp, also the
+payment-anxiety lever: 43% die at `pending_payment`) → price close (plans) → persistent
+bar. If any future round re-orders sections, the two gradients are neighbour-tuned and the
+§5 seam table must be re-derived.
+
+## Decision W2 — No existing fragment is touched; 65-ask is fully self-contained
+
+Verified, not assumed: gs-ask consumes only what `04-skin.json` already defines
+(`--gs7-*` tokens, `.gs-wrap`, `.gs-btn`, `--gs-r-big`, `--gs-sh-card` — all present) and
+brings its own `<section class="gs-ask">` with `background:var(--gs7-soft,#F4F8EE)` and
+zero top padding. The "merge with the FAQ" is achieved purely by ground identity: the FAQ's
+`#F4F8EE` comes from `meta.theme.bgSoft`, which equals `--gs7-soft`. The residual gap is
+the FAQ's own bottom padding (`.l-section` 70px, 50px ≤768px — landing.css:45/:358) on
+continuous soft ground; it reads as intra-unit spacing. **60-faq.json and 04-skin.json are
+not edited**, which keeps the round at exactly three new files + the generated config.
+
+## Decision W3 — Copy: adopt WARM_ROUND final drafts verbatim; em-dash rule is byte-level
+
+Russian, short sentences, no em dashes; time ranges «с 6:00 до 9:00». All figures verbatim
+from WARM_DATA / the 1418 funnel render; scenario copy carries zero numbers; no date in
+visible copy («реальное меню одного дня» framing; provenance lives in an HTML comment).
+To make the acceptance check mechanical, the three new fragment files must contain **zero
+em-dash bytes anywhere, comments included** — a plain `grep` then settles it. Dish names
+ship byte-verbatim from WARM_DATA (including «Зеленый»/«запеченным» without «ё») — an
+orthography "fix" would break the data trace.
+
+## Decision W4 — The gs-day spine is a background gradient, not `::before` (spec deviation, intent preserved)
+
+WARM_ROUND §2.4 draws the timeline spine with `.gs-day__line::before`, but a rendered
+pseudo-element requires a `content:""` declaration — and §6.7 of the same spec (and the
+band-09 droppability rule from Fix round 2) requires zero `content:` in the new fragments.
+The same 2px `rgba(44,78,40,.28)` rule is drawn instead as a sized no-repeat
+`background-image:linear-gradient(...)` on the `<ol>` (`7px 0/2px 100% no-repeat`). Zero
+pseudo-elements, identical pixels. Note the page-wide phrasing of §6.7 is already untrue
+for the *existing* page — `45-marquee.json` ships a grandfathered `content:"\2733"` — so
+the acceptance check is scoped to the three new fragments.
+
+## Decision W5 — Conversion instrumentation
+
+Six new `data-cta` values: `day-order`, `persona-1200`, `persona-1500`, `persona-1800`,
+`persona-2500`, `faq-whatsapp`. Checked against the full 1418 inventory (19 values,
+grep-verified) — no collisions; expected post-round inventory is 25. The WhatsApp anchor is
+legal: `validate.py`'s EXTERNAL_REF matches `src/href` only on media/embed tags
+(`img|iframe|source|video|audio|embed|object|track|input`), never `<a>` — verified by
+reading the regex, and the footer already links `wa.me/77008702626`.
+
+## Flags (spec vs repo ground truth)
+
+1. **Internal spec contradiction, resolved:** §2.4 `::before` spine vs §6.7 no-`content:`
+   — see Decision W4.
+2. **§6.7's page-wide "no content: outside 09-pseudo" is stale** — 45-marquee's ✳ is
+   grandfathered from the LK round. Scope the check to the new files.
+3. **Persona price floors are matrix-true only because of «от»** — «от 5 000 ₸ в день» is
+   the halved 14/30-day rate (BRIEF §4: 1–5 days cost double, no gift days). The funnel
+   prints the identical strings (render :757–819). Implementers must keep «от» and must
+   not attach the floor to any specific duration.
+4. **Desktop flank nuance (inference, accepted):** `.of` is a max-width column
+   (480px/1120px), so at ≥900px the funnel's soft ground is centered on the white body
+   while gs-who's gradient starts soft full-bleed. Invisible at the 390×844 viewport of
+   record; not worth a rule.
+5. No conflict with CLAUDE.md hard limits: no fabricated figures (all trace to
+   WARM_DATA/render/matrix), no order-form changes, no overrides added, drafts only,
+   no white-on-lime, gold only as aria-hidden decor on deep (4.38).
