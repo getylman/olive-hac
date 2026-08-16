@@ -522,3 +522,62 @@ dishes and plans).
   the page with 20-trust. Nothing to refresh; ignore the "Refresh 20-trust.json" hint.
 - `body` now carries `padding-bottom` for the floating bar **and** the footer wash, otherwise a
   white band shows under `.sf-footer`.
+
+## LK round 2 — 2026-08-16 (draft 1363)
+
+User brief: drop `gs-promo` and put gsPlans in its slot with «Начни уже сегодня»; turn
+gsDishes into a carousel with real dish photos; retitle the funnel («4 шага до здорового
+рациона»); plus five global notes — no em dashes and no compound sentences, don't make the
+reader wait for images, replace «доставка каждый день» with «Нужный КБЖУ каждый день с
+доставкой по Алматы», remove animation and even up the shapes, and deep green instead of
+lime in the bottom block.
+
+### Verified facts new this round
+
+- **Dish photography exists, just not in the `meals` tool.** `GET /api/meal-plans/<planId>/day/<iso>`
+  (order-funnel.js:513) returns each meal with an `images` array of
+  `https://olive.kz/meals_uploads/*.png|jpg`, 340x250 studio shots on white. Sweeping plans 5
+  and 6 over 2026-08-19..26 yielded **47 distinct dishes with photos**, and all 47 join the
+  `meals` API by name with **kcal and mass agreeing dish for dish**. Eight were taken for the
+  carousel; every one sits in all four rations. All eight URLs curl-verified 200.
+- **The footer's lime was a real contrast bug**, not just a preference: client.css:1990 paints
+  `.sf-footer__title` #C4F139 on the footer's own #F4F8EE wash, about 1.5:1. The section
+  headings were effectively unreadable. #2C4E28 takes them to 8.9. The logo and contact icons
+  carry the same lime as `fill` presentation attributes and are swapped by attribute selector.
+- **The funnel animates its menu screen from opacity 0** (order-funnel.css:118-133, staggered
+  delays on `.of-body > *` and `.of-plan`). Cancelling `animation` alone would leave the cards
+  invisible — the rule must restore `opacity:1` and `transform:none` too.
+
+### Changes
+
+- **70-plans.json** (was 35-plans) took the deleted 70-promo's slot: heading «Начни уже
+  сегодня», CTA to `#orderFunnel`. Number groups and unit phrases carry `&nbsp;` so «2 500»
+  and «за день еды» never break across lines.
+- **40-dishes.json**: scroll-snap carousel, eight real photos, arrows on ≥768px that disable
+  at each end. Nothing is `loading="lazy"` — in a horizontal scroller a lazy card is one swipe
+  from being looked at.
+- **03-hero.json**: photo strip is static, unrotated, one uniform 4:3 size, swipeable, and the
+  tiles are real `<img>` with width/height and `fetchpriority` so the preload scanner starts
+  them with the HTML (a CSS `background-image` cannot be discovered that early).
+- **04-skin.json**: `.gs-reveal` + its script deleted with the rest of the animation; so were
+  `.gs-imgbox` / `.gs-tag`, now that every picture on the page is a real photograph. Footer
+  recolors added.
+- **45-marquee.json**: the scrolling ribbon became a static wrapping row; «Доставка каждый
+  день» dropped, the promise now lives in the hero tagline.
+- Copy pass over 10-funnel, 60-faq, 09-pseudo, overrides and every gs- section: no em dashes
+  in prose, two or three short sentences instead of clause chains.
+
+### Gotchas new this round
+
+- **`meals` and the day endpoint agree on kcal/mass but only `meals` has Б/Ж/У**, and only the
+  day endpoint has images. Any dish card needs both; join them by name and check the numbers
+  match before trusting the pair.
+- **Reserve `loading="lazy"` for vertical content.** A lazy image inside a horizontal
+  scroller is not "below the fold" in any way the browser can reason about usefully.
+- **Verifying interactivity in a hidden browser pane keeps lying.** rAF is suspended, so
+  `scrollBy({behavior:'smooth'})` does nothing and `scroll` events never fire, which reads as
+  a dead carousel. Dispatch the event directly (`el.dispatchEvent(new Event('scroll'))`) to
+  test the handler, or force a frame with a screenshot first.
+- **`window.scrollTo` on the live page is unreliable while the funnel is mounted** — the funnel
+  calls `root.scrollIntoView()` on every screen change and pulls the viewport back. To inspect
+  a section below it, hide the sections above instead of trying to scroll past them.
