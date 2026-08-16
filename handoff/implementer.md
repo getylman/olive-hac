@@ -582,7 +582,7 @@ lime in the bottom block.
   calls `root.scrollIntoView()` on every screen change and pulls the viewport back. To inspect
   a section below it, hide the sections above instead of trying to scroll past them.
 
-## Desktop-zoom gap fix — 2026-08-16 (after draft 1367)
+## Desktop-zoom gap fix — 2026-08-16 (draft 1418, qa 42/0/2 — the 2 are the permanent counter warns)
 
 - **`order-funnel.css:28` gives `.of` `min-height:70vh`.** Invisible at 390×844 (screen 1 is
   taller than 70vh there), but the LK 4-column grid makes desktop screen 1 short, and browser
