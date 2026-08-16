@@ -69,6 +69,18 @@ def strip_code(html):
     return CODE_BLOCK.sub(" ", html)
 
 
+def visible_text(html):
+    """Text a reader actually sees: no script/style/svg bodies, no tags, entities eased.
+
+    <svg> matters specifically — path coordinates like "72.0195" contain the digits of
+    real figures and produced false "matches live API" passes.
+    """
+    t = CODE_BLOCK.sub(" ", html)
+    t = re.sub(r"(?is)<svg\b.*?</svg>", " ", t)
+    t = re.sub(r"(?s)<[^>]+>", " ", t)
+    return re.sub(r"&nbsp;?", " ", t)
+
+
 def cta_values(text):
     return [a or b for a, b in CTA_ATTR.findall(text)]
 
@@ -278,15 +290,31 @@ def main():
         check(bad not in html, f"no forbidden claim {bad!r}")
     ov = mcp("overview")
     if ov:
+        # Compare against VISIBLE TEXT only. Substring-matching the raw HTML is the same
+        # false-pass class as B1: "720" matches inside the SVG coordinate "72.0195", so a
+        # stale page reporting 719 was passing as "matches live API". Numbers must also be
+        # whole tokens — "297" must not match inside "1297".
+        text = visible_text(html)
+        shown = {int("".join(ch for ch in tok if ch.isdigit()))
+                 for tok in re.findall(r"\d[\d\s\u00a0]*\d|\d", text)
+                 if any(ch.isdigit() for ch in tok)}
         cust, orders, meals = ov["customers"], ov["orders"]["total"], ov["meals"]
         for num, label in ((cust, "customers"), (orders, "orders"), (meals, "dishes")):
-            spaced = f"{num:,}".replace(",", " ")
-            if str(num) in html or spaced in html:
+            # Whole-token comparison: pull every number out of the visible text,
+            # normalising thousands separators ("1 137" -> 1137), and compare as integers.
+            # Substring matching cannot tell 297 from 1297 — that was the false pass.
+            if num in shown:
                 check(True, f"{label} figure {num} matches live API")
-        stale = re.findall(r"\b(\d{3,5})\s+(?:клиент|заказ)", html)
+            else:
+                warn(f"{label}: live API says {num}, not found in the page text — "
+                     f"the figure is stale (it only ever grows, so this understates rather "
+                     f"than misleads). Refresh 20-trust.json before activating.")
+        stale = re.findall(r"([\d  ]{3,7})\s*(?:клиент|заказ)", text)
         for s in stale:
-            if int(s.replace(" ", "")) not in (cust, orders):
-                warn(f"number {s} near клиент/заказ does not match API ({cust}/{orders})")
+            digits = re.sub(r"[^\d]", "", s)
+            if digits and int(digits) not in (cust, orders):
+                warn(f"number {digits} sits next to клиент/заказ but matches neither live "
+                     f"figure ({cust} customers / {orders} orders)")
     else:
         warn("could not reach overview API to cross-check numbers")
 

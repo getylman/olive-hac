@@ -524,3 +524,247 @@ byte-identical `config.json` (diff against a pre-change copy).
 the source-order assumption for rules 1–3 fails on the live renderer — mitigated by the
 ID-scoping of all funnel rules, the explicit `.sf-header.scrolled` coverage, and re-QA step 4
 confirming the style block's body position before any browser check.
+
+---
+
+# Fix round 2 — restyle, surcharge reframe, prefs-limit state (planned 2026-08-16)
+
+Inputs: `design/VISUAL_REFRESH.md` + `design/DESIGN_SYSTEM.md` §7 (restyle, verbatim rule
+source), `plan/SURCHARGE_STRATEGY.md` (R1–R5), and the prefs-limit fix specced below (new).
+Baseline: draft **1133** (round 1 verified, QA 32/32). Drafts only; live stays **871**;
+never `--status active`. `landing/config.json` stays generated.
+
+## Architectural decision — the CSS fragment split (the crux of this round)
+
+All three streams write static CSS, and until now all static CSS lived in
+`landing/sections/05-style.json` (DESIGN_SYSTEM §7: "one place"). **Decision: split the
+restyle layer into per-package band fragments `06`–`09`; `05-style.json` is FROZEN this
+round (still exactly round-1 rules 1–7).** Rationale:
+
+1. **The split is forced, not optional.** The pseudo-content rules must be a *separately
+   droppable package* (see gate below), and the no-shared-files rule means a droppable
+   package must own its own fragment. Once one band file exists, giving each stream its own
+   band is strictly simpler than serialising two streams into a shared file and splitting
+   out a third.
+2. **Cascade safety, proven not assumed.** Three independent guarantees:
+   - Every funnel rule in `06`–`09` is `#orderFunnel`-scoped — (1,x,0) beats the funnel
+     CSS's (0,x,0) **order-independently**, so fragment position relative to the funnel's
+     in-body stylesheet cannot matter (same argument as WP-F1 rules 4–7).
+   - **Disjointness audit (done against the final rule sets below):** no selector+property
+     pair is declared in two fragments. `#orderFunnel{}` appears in 05 (`--of-green*`,
+     `--of-lime`) and 06 (`font-family`, `--of-muted`) — different properties, no
+     interaction. `of-total` (06: border/shadow) vs `of-total::after` (09) are different
+     boxes; likewise `of-subnote` (07) vs `of-subnote::after` (09). So same-specificity
+     source-order ties **between our fragments never arise**.
+   - If a future edit does double-declare, filename order gives a deterministic winner
+     (later band wins) — documented here, not left to chance.
+3. **Numbering is load-bearing — 06/07/08/09, nothing else.** Fragments assemble
+   lexicographically. A band numbered **below 05** would silently *lose* every
+   same-specificity tie to round-1 (e.g. a (1,1,0) `.of-gift-accent` recolor in an `04-`
+   file loses to rule 7 by source order — no error, just the wrong color). A band numbered
+   **10+** would render after the funnel markup, reintroducing the A5 first-paint-flash
+   class of bug on funnel screens. All style bands sit strictly inside (05, 10).
+
+Each band's `<style>` tag carries a distinct marker class for qa.py: `gs-fixes` (05,
+unchanged), `gs-restyle` (06), `gs-surcharge` (07), `gs-prefs` (08), `gs-pseudo` (09).
+
+**Recorded deviations from the input specs (intent preserved):**
+- VISUAL_REFRESH C1 said "merge `--of-muted:#6B6B6B` into round-1 rule 4's block" and §6.2
+  said "the refresh band renders inside `gs-fixes` after rules 1–7" — both assumed
+  appending to 05. Superseded: C1 ships as its own `#orderFunnel{--of-muted:#6B6B6B}`
+  declaration in 06 (same (1,0,0) specificity, different property — identical effect), and
+  the refresh band is the separate `gs-restyle` block.
+- SURCHARGE_STRATEGY's note "update the re-QA gate to 9 rules / 2–3 overrides" assumed
+  appending rules 8–9 to 05. Superseded: 05 stays at exactly 7 rules; the counts that
+  change are **overrides 1 → 2 (3 with R5)** and **style bands 1 → 4–5**.
+- DESIGN_SYSTEM §7's "one place" wording is amended to "one *layer*, one owner per band
+  fragment, never overrides" — everything else in §7 (ID-scoping, constants, red lines)
+  stands and binds every band below.
+
+## Package map — 5 packages, disjoint files, WP-R1..R4 fully parallel
+
+```
+WP-R1  06-restyle.json, 80-orderbar.json, 40-dishes.json ─┐
+WP-R2  07-surcharge.json, meta/overrides.json, 60-faq.json ─┤
+WP-R3  08-prefs.json                                       ─┼─→ WP-R5 assemble → validate
+WP-R4  09-pseudo.json   [DROPPABLE — see gate]             ─┘        → draft → re-QA
+```
+
+## WP-R1 — Funnel restyle core + own-block amplifiers
+
+**Owns:** `landing/sections/06-restyle.json` (new), `landing/sections/80-orderbar.json`,
+`landing/sections/40-dishes.json`.
+
+1. **Create `06-restyle.json`** — `{"type":"html","props":{"content":"<style class=\"gs-restyle\">…</style>"}}`
+   containing, in this order and **verbatim from `design/VISUAL_REFRESH.md` §3** (specificity
+   proofs and computed ratios live there; do not re-derive, do not restate copy here):
+   - T1–T3 (type continuity + money prominence; T1 `#orderFunnel{font-family:…}`),
+   - C1–C5 (contrast repairs; C1 as its own `#orderFunnel{--of-muted:#6B6B6B}` rule — see
+     deviation note above),
+   - S1–S4 (selection washes `#EAF3DF`),
+   - O1 (lime offer badge),
+   - E1 **only** (`of-total` border+shadow — E2 belongs to WP-R4),
+   - D (promo de-emphasis).
+   **No pseudo-content in this file** (P and E2 are WP-R4's). No `display`/`visibility`/
+   `position` on any functional funnel node; no rules on `of-btn` geometry, `of-mbar`
+   positioning, `.d-none`, `of-screen` switching; button labels never touched (they wrap
+   the live price span).
+2. **`80-orderbar.json`** — apply VISUAL_REFRESH §2.1 exactly: offer span becomes
+   `<b class="gs-orderbar__price">от 5 000 ₸/день</b><br>+14 дней в подарок` plus the
+   `.gs-orderbar__price` rule. Keep button text «Собрать рацион», `data-cta="orderbar"`,
+   the `--hidden` ship-state and observer from WP-F1 untouched. Re-verify the from-price
+   against the rendered matrix before shipping (DS §5.8 addendum).
+3. **`40-dishes.json`** — apply §2.2 exactly: `.gs-dish__kcal{font-size:var(--gs-fs-h2,1.5625rem)}`,
+   `.gs-dish__body{gap:var(--gs-sp-3,12px)}`. No other change; data stays verbatim.
+
+**Acceptance:** 06 contains only `#orderFunnel`-prefixed selectors, zero `content:`
+declarations, zero `display/visibility/position` declarations; every hex in the file
+appears in VISUAL_REFRESH §3 or DESIGN_SYSTEM §1/§7 (никаких новых цветов); assemble+validate
+0 errors (of-* deliberate-restyle warnings expected).
+**Verify:** WP-R5 steps 1–4; browser items in step 5 (marked B).
+
+## WP-R2 — Surcharge reframe (SURCHARGE_STRATEGY R1, R3, R4, R5-optional)
+
+**Owns:** `landing/sections/07-surcharge.json` (new), `landing/meta/overrides.json`,
+`landing/sections/60-faq.json`.
+
+1. **Create `07-surcharge.json`** — `<style class="gs-surcharge">` with exactly R1:
+   `#orderFunnel .of-subnote{color:#194536;background:#EAF3DF}` (9.45:1, de-errors the
+   note; beats `order-funnel.css:1339` (0,1,0) with (1,1,0)). **R2's `::after` explanation
+   is NOT here — it is WP-R4's.**
+2. **`overrides.json`** — append R3 verbatim (the prefs-screen `.of-head__sub` `text`
+   override, funnel-1058.html:457 — the `[data-screen="prefs"]` scope is what excludes the
+   JS-written `.of-head__sub` at :287). Optionally append R5 (checkout row label). Keep the
+   `#sfOrderBtn` rule first and untouched. Legal: `text` on a static template node — the
+   recorded overrides rule of thumb.
+3. **`60-faq.json`** — insert R4's item verbatim after «Как проходит оплата?». No other
+   item changes (round-1/offer copy is settled).
+
+**Acceptance:** overrides.json has 2 (or 3) rules, `#sfOrderBtn` first; validate.py 0
+errors — expect its "selector not found" **warnings** for R3/R5 (checked against
+funnel-less `gosura.html`); FAQ JSON valid, item text byte-equal to SURCHARGE R4.
+**Verify:** WP-R5; R3/R5 are DCL-applied so the curl render shows the *original* text —
+their delivery is asserted via the embedded overrides payload (qa.py B2) + browser (B).
+
+## WP-R3 — Prefs limit: visible disabled state (new spec — this is the buildable source)
+
+**Owns:** `landing/sections/08-prefs.json` (new).
+
+**Verified mechanics:** funnel JS caps prefs at `MAX_PREFS = 3` and, once 3 are checked,
+sets `disabled` on every unchecked `[data-of-pref]` checkbox (`enforcePrefLimit`,
+order-funnel.js:917–924); ships **zero** disabled styling (`research/order-funnel.css` has
+no `of-prefs` disabled rule). Markup (funnel-1058.html:500–540, 24 instances):
+`<label class="of-prefs__opt"><input type="checkbox" data-of-pref value="N"><span>…</span></label>`
+— so `input:disabled + span` addresses the label text; `:has()` addresses the whole label.
+
+**Create `08-prefs.json`** — `<style class="gs-prefs">` with exactly:
+
+```css
+/* prefs limit: JS disables unchecked boxes at 3 selected with no visual state */
+#orderFunnel .of-prefs__opt input[data-of-pref]:disabled{opacity:.45;cursor:not-allowed}
+#orderFunnel .of-prefs__opt input[data-of-pref]:disabled+span{color:#9E9E9E}
+#orderFunnel .of-prefs__opt:has(>input[data-of-pref]:disabled){cursor:not-allowed}
+```
+
+- `#9E9E9E` on white = **2.68 — computed, deliberate, legal**: WCAG 1.4.3 exempts inactive
+  UI components; the point is to be visibly distinct from active ink `#181717` (17.89) and
+  from informational muted `#6B6B6B` (5.33) so the state reads as *disabled*, not broken.
+- Specificity (1,2,1)/(1,2,2) beats `.of-prefs__opt input` (0,2,1) order-independently.
+- `opacity` on a disabled input hides nothing tappable (disabled inputs ignore taps);
+  the red-line ban on `display/visibility/position` is respected.
+- Line 3 is progressive enhancement: without `:has()` support the first two rules still
+  deliver the full disabled state.
+- The *limit explanation* line is pseudo-content → WP-R4. If WP-R4 is dropped, the limit is
+  still communicated by WP-R2's R3 override text («…предпочтения (до 3)…») plus this
+  visible state — acceptable degradation.
+
+**Acceptance:** file contains exactly the three rules; only `#orderFunnel`-prefixed
+selectors; no `content:`; validate 0 errors.
+**Verify:** browser-only (B) — the disabled state exists only after user interaction;
+curl can never see it. WP-R5 step 5.
+
+## WP-R4 — Pseudo-content band [SEPARATELY DROPPABLE — needs user sign-off]
+
+**Owns:** `landing/sections/09-pseudo.json` (new).
+
+**Create `09-pseudo.json`** — `<style class="gs-pseudo">` containing every CSS-generated-copy
+rule of the round, verbatim from the source specs:
+1. **P** — the four step labels + base `of-topbar::after` rule (VISUAL_REFRESH §3-P).
+2. **E2** — «Платёж обрабатывает Halyk Bank ePay» `of-total::after` line (§3-E).
+3. **R2** — the surcharge explanation `of-subnote::after` (SURCHARGE_STRATEGY R2 verbatim —
+   survives the funnel's `textContent` rewrites because generated content is CSS-owned;
+   order-funnel.js:742–752 rewrites text and toggles classList only).
+4. **Prefs limit hint** (new, pairs with WP-R3):
+
+```css
+#orderFunnel .of-prefs:has(input[data-of-pref]:disabled)::after{
+  content:"Максимум — 3 предпочтения. Чтобы выбрать другое, снимите одно из выбранных.";
+  display:block;margin-top:10px;font:400 13px/1.4 "Museo Sans Cyrl",Arial,sans-serif;
+  color:#6B6B6B}
+```
+
+True whenever shown: the `:has()` guard renders it exactly when `enforcePrefLimit` has
+disabled boxes, i.e. exactly at 3 selected; no numbers CSS can't know. `#6B6B6B` ≥4.68 on
+every ground it can sit on. `display:block` on a generated child of a non-interactive
+container is inside the red lines (which ban display changes on functional *nodes*).
+Degrades silently without `:has()`.
+
+**The gate, honestly stated:** copy in CSS `content` is invisible to find-in-page and text
+selection, announced inconsistently by screen readers, brittle against funnel class renames,
+and it puts words where maintainers don't look — that is why VISUAL_REFRESH flags P/E2 as
+sign-off-needed, and for those two the mechanism is merely *convenient* (dropping them loses
+step labels and a reassurance line, nothing breaks). For R2 the same mechanism is the **only**
+honest option we own: JS rewrites the note's `textContent` on every recalc, so a `text`
+override is futile and any static wording would misstate a dynamic amount — dropping R2 means
+the ₸96k lump sum stays a bare unexplained number until the FAQ. One package, one yes/no:
+decline it and WP-R1/R2/R3 ship untouched (delete this one file, re-run WP-R5); accept it and
+all four rules arrive together.
+
+**Acceptance:** all `content:` declarations of the round live in this file and nowhere else;
+copy byte-equal to the source specs; only `#orderFunnel`-scoped selectors.
+**Verify:** browser-only (B) for R2 and the limit hint (state-dependent); P/E2 visible on
+any funnel walk-through (still browser — pseudo-content never appears in curl'd DOM text).
+
+## WP-R5 — Assembly, draft, re-QA (RUNS LAST; sole writer of generated files)
+
+**Owns:** `landing/config.json` (generated), the QA run.
+
+1. `python3 tools/assemble.py` → expect printed order
+   `html, html, html, html, html, order_funnel, html, html, html, home_advantages, home_quality, faq, cta, html`
+   (bands 05–09 before the funnel; 4 `html` bands if WP-R4 was declined).
+2. `python3 tools/validate.py landing/config.json` → **0 errors**; expected warnings only:
+   of-*/sf-* deliberate-restyle per band + "selector not found" for R3/R5 + the WP-F1
+   script advisory.
+3. `export OLIVE_MCP_URL=…` then
+   `./tools/olive.py save gosura landing/config.json --label "fix-round-2" --status draft`.
+   Record vid + preview_url. **Draft only. Never activate. Live stays 871.**
+4. `python3 tools/qa.py <vid> --save` (round-1-fixed qa.py) — static assertions on the
+   saved render: five (or four) marker style blocks present in `<body>` **before**
+   `#orderFunnel`; `gs-fixes` byte-identical to round 1 (7 rules — the freeze held);
+   embedded overrides payload has 2–3 rules incl. R3's text; FAQ contains R4's question;
+   no `content:` outside `gs-pseudo`.
+5. **Browser-only (B) checklist, 390×844** — none of these are curl-visible:
+   - VISUAL_REFRESH §6.3 walk-through (washes, 21px mbar price, bordered `of-total`,
+     22px sum, live pay-button price intact, no horizontal scroll, motion + reduced-motion).
+   - **Prefs:** check 3 boxes → remaining 22 grey out (`#9E9E9E` text, dimmed box), taps on
+     them do nothing visibly broken, limit hint appears under the list; un-check one →
+     re-enable + hint gone; «Очистить» resets all.
+   - **Surcharge:** pick a pref that forces replacements → note is green-on-wash with the
+     R2 explainer beneath the dynamic sum; remove pref → note hides entirely (`d-none`
+     untouched); prefs screen subtitle shows R3's text (DCL applied).
+   - Step labels on all four `of-topbar`s; ePay line under the pay button.
+   - Round-1 stragglers still pending from 1133: A2 gift-accent after interaction, A3
+     desktop click target, A4 footer clearance, A5 no-flash. Close them in the same session.
+6. If the user declines WP-R4 after the draft: `rm landing/sections/09-pseudo.json`,
+   re-run steps 1–4, save a new draft. Nothing else changes — that is the point of the split.
+
+**Sequencing note:** any future copy round touching `60-faq.json` / `80-orderbar.json`
+(e.g. offer tweaks) must sequence after WP-R1/WP-R2 land — one owner at a time.
+
+**Biggest risk of the round:** the highest-value rules are **state-dependent and
+browser-only** — the disabled-prefs state, the `:has()` hint and the surcharge note exist
+only after user interaction, so a typo'd selector ships green through assemble/validate/qa
+and fails silently in the field; `:has()` support and Olive renaming funnel classes are the
+same failure shape. Mitigated by: markup anchors file:line-verified today (funnel-1058.html
+:425/:457/:500–540), base disabled styling not depending on `:has()`, and re-QA step 5's
+explicit interaction repros being **mandatory**, not optional, before any activation talk.

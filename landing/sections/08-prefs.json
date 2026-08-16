@@ -1,0 +1,6 @@
+{
+  "type": "html",
+  "props": {
+    "content": "<style class=\"gs-prefs\">\n/* WP-R3 — prefs limit: the missing disabled state.\n   order-funnel.js:917 sets MAX_PREFS = 3; enforcePrefLimit() (:920-925) does\n   `if (!i.checked) i.disabled = checked >= MAX_PREFS` on every [data-of-pref].\n   order-funnel.css ships no matching disabled rule, so once three are checked\n   «Без десерта» still looks exactly like a live option and does nothing.\n   This band supplies the missing feedback only — the 3-preference cap is\n   Olive's business rule and is not touched, raised or bypassed here.\n   ID-scoped throughout: .of-* rules are single-class and the funnel injects\n   its CSS in-body, so source order can never be relied on. */\n#orderFunnel .of-prefs__opt input[data-of-pref]:disabled{opacity:.45;cursor:not-allowed}\n#orderFunnel .of-prefs__opt input[data-of-pref]:disabled+span{color:#9E9E9E}\n/* Progressive enhancement only. Carries cursor, never the colour or opacity,\n   so the two rules above still deliver the full state where :has() is absent —\n   and a :has() failure can never leave a working control looking disabled. */\n#orderFunnel .of-prefs__opt:has(>input[data-of-pref]:disabled){cursor:not-allowed}\n</style>"
+  }
+}

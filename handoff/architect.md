@@ -1,7 +1,7 @@
 # Handoff — landing-architect
 
 **Owner:** `.claude/agents/landing-architect.md` (Fable)
-**Last updated:** 2026-08-16 · after planning Fix round 1 (see `plan/WORK_PACKAGES.md`)
+**Last updated:** 2026-08-16 · after planning Fix round 2 (see `plan/WORK_PACKAGES.md`)
 
 Living state for the architecture role. Read at the start of a run; update at the end.
 
@@ -34,6 +34,28 @@ Living state for the architecture role. Read at the start of a run; update at th
    untrusted until fixed. A1 copy is on hold for `plan/OFFER_STRATEGY.md`; the later copy
    edit touches only 10-funnel, 60-faq, 70-cta, 80-orderbar. A6 + A1 + `#sfOrderBtn`'s
    missing `data-cta` go on the report-to-Olive list.
+   *(Landed: implemented + verified in draft 1133, QA 32/32; offer copy is matrix-true.)*
+8. **AMENDED (2026-08-16): the static-CSS layer is split into band fragments; the
+   single-file rule of DESIGN_SYSTEM §7 becomes "one layer, one owner per band, never
+   overrides".** Trigger: Fix round 2 has three streams (visual refresh, surcharge reframe,
+   prefs-limit fix) all writing CSS, plus a hard requirement that pseudo-content be a
+   *separately droppable* package — under the no-shared-files rule that forces at least one
+   extra fragment, and per-stream bands are then strictly simpler. Fragments:
+   `05` gs-fixes (**frozen**, rules 1–7), `06` gs-restyle, `07` gs-surcharge, `08` gs-prefs,
+   `09` gs-pseudo (droppable). Cascade-safety proof (WORK_PACKAGES "Fix round 2"):
+   (a) all band rules are `#orderFunnel`-scoped (1,x,0) → order vs the funnel's in-body CSS
+   irrelevant; (b) selector+property disjointness audited across bands → no inter-band ties
+   exist; (c) any future double-declaration resolves deterministically (later band wins);
+   (d) band numbers must sit strictly inside (05, 10) — lower loses ties to round-1,
+   `10+` re-creates the A5 flash. C1's "merge into rule 4" and SURCHARGE's "9 rules in 05"
+   are superseded accordingly (intent preserved; 05 stays at exactly 7 rules).
+9. **Fix round 2 planned** — 5 packages: WP-R1 restyle core (06 + 80-orderbar §2.1 +
+   40-dishes §2.2); WP-R2 surcharge (07 + overrides R3/R5 + FAQ R4); WP-R3 prefs disabled
+   state (08 — new spec, lives in WORK_PACKAGES); WP-R4 pseudo-content band (09 — P, E2,
+   R2, prefs-limit hint; **user sign-off gate, droppable via `rm` + re-assemble**);
+   WP-R5 assembly/draft/re-QA last. R1–R4 fully parallel. Disabled-state grey `#9E9E9E`
+   (2.68 on white — computed, legal: WCAG 1.4.3 exempts inactive components; chosen to be
+   distinct from ink 17.89 and informational muted 5.33). Overrides go 1 → 2 (3 with R5).
 
 ## Hard-won platform facts
 
@@ -87,6 +109,13 @@ Nothing has been activated. **Activation is the user's decision.**
   flagged inference is now CONFIRMED: the server does emit our html-block `<style>` in
   `<body>` after `</head>`, so the source-order tie-breaks for rules 1–3 hold.
 - Browser-only confirmations still pending on 1133: A2 post-interaction colour, A3 click
-  target, A4 footer clearance, A5 first-paint flash.
+  target, A4 footer clearance, A5 first-paint flash. (Folded into round 2's re-QA step 5.)
+- **WP-R4 (pseudo-content band) awaits explicit user sign-off** — the trade-off paragraph is
+  in WORK_PACKAGES "Fix round 2". Declining it costs the surcharge explanation (the one
+  place where `::after` is the only mechanism surviving `textContent` rewrites), step
+  labels, and the ePay line; nothing else depends on it.
+- Round 2's highest-value rules are state-dependent and **browser-only verifiable**
+  (disabled prefs, `:has()` hint, surcharge note) — assemble/validate/qa cannot see them;
+  re-QA step 5's interaction repros are mandatory.
 - A1 is fixed on our side (copy is matrix-true) but the **platform matrix itself is still
   wrong** — report to Olive stands, along with A6 and `#sfOrderBtn`'s missing `data-cta`.

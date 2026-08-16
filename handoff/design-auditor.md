@@ -1,49 +1,60 @@
 # Handoff — landing-design-auditor
 
 **Owner:** `.claude/agents/landing-design-auditor.md` (Fable)
-**Last updated:** 2026-08-16 · after the v2 build and the override-mechanism audit
+**Last updated:** 2026-08-16 · after the visual-refresh research run (Dodo/Drinkit study →
+`design/VISUAL_REFRESH.md`)
 
 Living state for the design role. Read it at the start of a run; update it at the end.
-Keep it factual — record what was *verified*, and mark inference as inference.
 
 ## Current state
 
-`design/AUDIT.md` (P0–P2 findings) and `design/DESIGN_SYSTEM.md` (tokens, type scale,
-8 `gs-` component specs) are written and were implemented in landing version **1069** (draft).
+Three documents, in build order: `design/AUDIT.md` (P0–P2 findings, implemented in v2/v1133),
+`design/DESIGN_SYSTEM.md` (tokens, type scale, `gs-` specs, **new §7 funnel-restyle layer**),
+`design/VISUAL_REFRESH.md` (**new** — Dodo/Drinkit-referenced restyle specs, prioritised,
+with per-rule specificity proofs; nothing implemented yet). Current draft v1133.
 
 ## Verified facts — do not re-derive
 
-- **Computed contrast** (real WCAG maths, not estimates):
-  | pair | ratio | verdict |
-  |---|---|---|
-  | white on lime `#C4F139` | **1.31** | illegal everywhere, even non-text UI |
-  | white on `#4CAF50` (funnel default green) | **2.78** | fails for 16px bold |
-  | white on `#194536` | 10.79 | AAA |
-  | green `#194536` on lime | 8.22 | AAA |
-  | ink `#181717` on lime | 13.62 | AAA |
-  | white on `#FF2600` | 3.80 | large text only |
-- Lime is a **ground/decoration**, never a background for white text.
-- Type scale (mobile, 390px): 12 / 14 / 16 / 18 / 21 / 25 / 30px, rem-based; hero clamps up on
-  desktop. "Loos Wide" only at ≥20px and uppercase.
-- Spacing 4px scale; radii 6 / 10 / 16 / 18 / pill.
-- The server emits `html` block content **raw, no wrapper** — every block supplies its own
-  `<section>` and padding.
-- `meta.theme` compiles to `:root { --l-* }` **and** `body .of { --of-lime/--of-green/--of-green-d }`.
-  Note the server maps `primaryDark` to *both* `--of-green` and `--of-green-d`, so the funnel's
-  hover state collapses to the base colour unless an override re-points `--of-green-d`.
+- **Round-1 contrast table still stands** (white-on-lime 1.31 illegal; green-on-lime 8.22;
+  ink-on-lime 13.62; white-on-green 10.79; white on funnel-default `#4CAF50` 2.78).
+- **New computed (2026-08-16), full table in DESIGN_SYSTEM §1:** funnel `--of-muted:#888`
+  = **3.54** on white — and it colors `of-dd__price`, i.e. *price text at 13px on the
+  payment path*; hints `#aaa` = **2.32**; error `#e53935` = **4.23** at 12px. Verified
+  repairs: muted `#6B6B6B` (5.33/4.68/4.67 on white/`#f0f0f0`/`#EAF3DF`), error `#B42318`
+  (6.57). Offer-badge white-on-blend `#4c6e62` = 5.65 (legal; lime chip 8.22 preferred).
+- **Funnel structure** (funnel-1058.html): root `class="of" id="orderFunnel"`; 5 screens
+  `data-screen="menu|preview|prefs|delivery|checkout"` (prefs = optional detour; main path
+  is 4 steps); `of-topbar`s hold only a back button — room for CSS `::after` step labels.
+- **`.of` declares `font-family` exactly once** (order-funnel.css:25) → a single
+  `#orderFunnel{font-family:…}` rebrands every funnel screen.
+- **Already present in the funnel — never duplicate:** `prefers-reduced-motion` guard
+  (order-funnel.css:1303); per-day price in the sticky `of-mbar` (`data-price-perday`);
+  «Популярное» badge on the 1500 plan; plan cards printing «от 5 000 ₸/день» + macros.
+- **Reference base** (details + URLs in VISUAL_REFRESH §0): dodopizza.kz is Servicepipe-
+  blocked headless, but **dodopizza.ae/.pl run the identical Dodo IS front-end** — observed:
+  total-in-CTA («Add to Cart for AED 46») in a sticky safe-area footer; price-as-secondary-
+  pill «from AED 29»; segmented controls with a 200ms sliding indicator; selection = fill +
+  icon, never lone border; orange `#FF6400` reserved for the primary CTA. **Drinkit ordering
+  is app/kiosk-only** — borrow its documented composition-transparency concept, never its
+  unobserved UI. Published evidence set (Baymard/NN/g/Gourville/GrowthRock) cited in §0.
 
 ## Open design risks
 
-- **Overrides are applied by client-side JS at `DOMContentLoaded`, once.** Every cosmetic P0 fix
-  (hiding the maintenance banner, recolouring the header) therefore lands *after* first paint —
-  a visible flash on slow mobile connections, which is exactly the audience. Design fixes that
-  depend on overrides are structurally weaker than fixes baked into a `gs-` block.
-- Anything the funnel injects *after* load never receives its override (same single-pass reason).
-- `home_advantages` pulls raster images from olive.kz — outside our control, unaudited for weight.
+- **CSS pseudo-content rules** (step labels on `of-topbar`, ePay line on `of-total`) put
+  copy in CSS: brittle vs funnel renames, announced by screen readers (content is accurate,
+  so acceptable), invisible to the overrides validator. Shipped only as P1 with the caveat
+  stated in VISUAL_REFRESH §3; get user sign-off before implementing E2/P rules.
+- Overrides remain a single DCL pass — cosmetics stay in static CSS (`05-style.json`), which
+  is also where the whole refresh band lands. One fragment, one owner at a time (WP rule).
+- Loos Wide is a wide face: refresh deliberately keeps it off text <20px and off the long
+  funnel hero title (wrap risk at 390px) — resist "brand it harder" pressure.
+- `home_advantages` still pulls unaudited raster images from olive.kz.
 
 ## Next time
 
-1. Re-check contrast if `meta.theme` changes — the funnel derives its palette from it.
-2. Audit real mobile performance (the page carries Bootstrap + swiper + leaflet + 3 analytics tags).
-3. Keep `design/DESIGN_SYSTEM.md` the single source for `gs-` components; implementers build
-   against it verbatim.
+1. After implementation: browser-verify VISUAL_REFRESH §6 gates at 390×844 (all 5 screens,
+   live price intact, no horizontal scroll, reduced-motion path).
+2. Re-run the contrast script on any new hex; re-check if `meta.theme` changes.
+3. Report-to-Olive list is consolidated in VISUAL_REFRESH §5 (aria-live prices, real
+   stepper, payment marks, price-change feedback, promo collapse, delivery-cost timing,
+   pending_payment recovery, modal H1s).

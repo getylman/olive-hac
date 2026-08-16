@@ -1,0 +1,6 @@
+{
+  "type": "html",
+  "props": {
+    "content": "<style class=\"gs-surcharge\">\n/* Fix round 2 - WP-R2 / SURCHARGE_STRATEGY R1.\n   The funnel ships the replacement surcharge as an error: order-funnel.css:1340\n   paints .of-subnote #e53935 on #fdecea = 3.70:1 at 13px/600, a WCAG AA failure.\n   The charge is real and stays fully visible at the same size, in the same place,\n   at the same moment - only the semantics change from error to information.\n   #194536 on #EAF3DF is 9.45:1, i.e. more legible than what it replaces.\n   ID-scoped (1,1,0) so it beats the funnel's own (0,1,0) rule regardless of the\n   order in which the funnel injects its in-body stylesheet. */\n#orderFunnel .of-subnote{color:#194536;background:#EAF3DF}\n</style>"
+  }
+}

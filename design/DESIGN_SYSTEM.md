@@ -40,6 +40,21 @@ colors as `var(--l-*, fallback)`** so `meta.theme` re-skins our blocks for free:
 | **white on lime / lime on white** | **1.31** | **ILLEGAL — all uses**, incl. icons/borders that carry meaning (needs 3:1) |
 | white on #FF2600 | 3.80 | large text (≥24px / ≥19px bold) only; avoid — off-brand |
 
+Funnel-restyle pairs (computed 2026-08-16; funnel grounds: card `#fff`, bg `#f0f0f0`,
+wash `#EAF3DF`):
+
+| pair | ratio | verdict |
+|---|---|---|
+| funnel `--of-muted` #888 on white | **3.54** | FAIL AA — carries `of-dd__price` (price text, 13px) |
+| funnel hint #aaa on white | **2.32** | FAIL |
+| funnel error #e53935 on white | **4.23** | FAIL at its 12px size |
+| **#6B6B6B** (muted repair) on white / #f0f0f0 / #EAF3DF | 5.33 / 4.68 / 4.67 | PASS body AA everywhere it sits |
+| **#B42318** (error repair) on white / #EAF3DF | 6.57 / 5.76 | PASS |
+| white on #0f3527 (green-d hover) | 13.47 | PASS |
+| green #194536 on #f2fbdf (weekday wash) | 10.09 | PASS |
+| #555 on #EAF3DF · #194536 on #f3f9f0 | 6.53 · 10.08 | PASS |
+| white on offer-badge blend #4c6e62 (`rgba(255,255,255,.22)` over green) | 5.65 | PASS (18px/800) — lime-chip variant (green on lime 8.22) preferred for brand |
+
 ### Rules
 
 1. **Lime is a ground or a decoration, never a text color on light.** Text on lime =
@@ -346,3 +361,40 @@ button, `top:0`) may be used on desktop instead; never both on one viewport.
 - No white-on-lime / lime-on-white, ever (1.31:1).
 - No autoplaying motion; transform transitions need a `prefers-reduced-motion` guard.
 - Run `python3 tools/validate.py landing/config.json` before every MCP save.
+
+## 7. Funnel restyle layer (owner: `landing/sections/05-style.json`)
+
+All cosmetics applied to Olive's funnel live in **one place**: the static
+`<style class="gs-fixes">` block in `05-style.json` — never in `meta.overrides` (single
+DCL pass: flashes, misses innerHTML-rebuilt nodes). Rules are **`#orderFunnel`-scoped**
+(funnel internals are single-class `(0,1,0)` and its CSS is injected in-body, so ID-scoping
+wins independent of source order). Full rule set, per-rule specificity proofs and priorities:
+**`design/VISUAL_REFRESH.md` §3** — build against it verbatim.
+
+Non-token constants of this layer (record here so nobody re-derives them):
+
+| constant | value | role |
+|---|---|---|
+| funnel muted repair | `#6B6B6B` | replaces `--of-muted:#888` and literal `#aaa`/`#888` hints |
+| funnel error repair | `#B42318` | replaces `#e53935` at 12px |
+| selection wash | `#EAF3DF` (= `--l-bg-lime`) | background for every `is-selected` state |
+| funnel families | Museo Sans Cyrl base via `#orderFunnel{font-family:…}`; Loos Wide only on 20–22px money/titles | `.of` declares `font-family` exactly once (order-funnel.css:25) — one rule rebrands all screens |
+
+Restyle red lines: no `display`/`visibility`/`position` changes on functional funnel nodes;
+no rules on `.d-none`, `of-screen` switching, `of-mbar` positioning or `of-btn` geometry;
+CSS pseudo-content only on non-interactive containers (`of-topbar`, `of-total`) and only
+with copy that is true regardless of funnel state. The funnel's own reduced-motion guard
+(order-funnel.css:1303) and the per-day price in `of-mbar` already exist — never duplicate.
+
+### 5.8 addendum — orderbar price line
+
+`gs-orderbar__offer` gains a first line `<b class="gs-orderbar__price">от 5 000 ₸/день</b>`
+(Loos Wide 700 1rem, green, `tabular-nums`) above «+14 дней в подарок». The from-price must
+equal the rendered matrix `perDay` of the cheapest plan's 14/30-day cells — re-verify
+against `window.OLIVE_PRICING` before every ship.
+
+### 5.5 addendum — dish card numeral
+
+`gs-dish__kcal` is the card's visual anchor in place of photography: size
+`var(--gs-fs-h2)` (25px), body gap `--gs-sp-3`. No images, no invented dishes — data
+verbatim from `meals`.

@@ -195,7 +195,153 @@ Then: `python3 tools/assemble.py` → `tools/validate.py` → `tools/qa.py <vers
 `20-trust.json` hardcodes real API figures. They **grow over time**, so a stale value understates
 rather than lies — but refresh before any activation:
 `./tools/olive.py call overview '{}'` → `customers`, `orders.total`, `meals`.
-Refreshed this round 717→**719** clients, 1 130→**1 137** orders (dishes still 297). `qa.py`
-cross-checks these against the live API, so a stale strip shows up as a QA failure, not silently.
+Refreshed 717→**719** clients, 1 130→**1 137** orders (dishes still 297); the API moved again
+to 720/1138 within the same session — these drift constantly, so treat a small gap as normal.
+`qa.py` cross-checks against the live API and **warns** (not fails) when the page understates.
+Workflow: leave small drift alone, but **refresh immediately before activating** — the QA
+warning is the reminder. Understating is never a falsehood; overstating would be.
+
+The number check itself was a false pass until 2026-08-16: it substring-matched the raw HTML,
+so live `720` "matched" inside the SVG coordinate `72.0195` while the page really said 719.
+It now compares whole numeric tokens against **visible text only** (script/style/svg stripped).
+Same lesson as B1 — if a check can match something other than the thing it claims to test, it
+will eventually do exactly that.
 
 Still say «заказов», never «выполненных»: 489 of 1 137 are `pending_payment` and never shipped.
+
+## Fix round 2 — band-fragment discipline (2026-08-16, landing-architect)
+
+- Static CSS is now a **layered set of band fragments**, one owner each: `05` gs-fixes
+  (FROZEN — round-1 rules 1–7, byte-identical), `06` gs-restyle, `07` gs-surcharge,
+  `08` gs-prefs, `09` gs-pseudo. **All style bands must sort strictly between `05-` and
+  `10-`**: a lower number silently loses same-specificity ties to round-1 (no error, wrong
+  color); `10+` puts CSS after the funnel markup and re-creates the A5 first-paint flash.
+- Every funnel rule in a band must be `#orderFunnel`-prefixed. Never add a bare `.of-*`
+  selector to a band: at (0,x,0) it tie-breaks against the funnel's in-body CSS by document
+  position, which depends on fragment number — exactly the silent breakage the ID-scoping
+  rule exists to prevent.
+- `content:` declarations live **only** in `09-pseudo.json` (the droppable sign-off band).
+  Adding pseudo-content copy to any other band breaks the drop path (`rm 09` + re-assemble).
+- Prefs markup fact: `<label class="of-prefs__opt"><input type="checkbox" data-of-pref
+  value="N"><span>…</span></label>` (funnel-1058.html:500–540) — `input:disabled+span`
+  reaches the label text; `:has()` rules are progressive enhancement only, never the sole
+  carrier of a state.
+- The round-2 acceptance counts: overrides go 1 → 2 (3 with R5); `05-style.json` stays at
+  exactly 7 rules. SURCHARGE_STRATEGY's "9 rules in 05" note is superseded by the split.
+
+### WP-R3 (2026-08-16) — `08-prefs.json`, prefs disabled state
+
+- **`research/order-funnel.js` does not exist in this repo** — the funnel JS is loaded from
+  `https://olive.kz/js/order-funnel.js?v=1786535059` (funnel-1058.html:1126). Specs cite it by
+  line number, so if you need to verify a funnel mechanic, `curl` it with a browser UA (the WAF
+  403s default agents) rather than assuming the file is missing/stale. Verified this round:
+  `:917 var MAX_PREFS = 3` and `:920-925 enforcePrefLimit()` →
+  `if (!i.checked) i.disabled = checked >= MAX_PREFS;`. The spec's mechanic is accurate.
+- **WP-R3's specificity arithmetic in WORK_PACKAGES is slightly wrong, conclusion unaffected.**
+  It calls the new rules (1,2,1)/(1,2,2) and the incumbent `.of-prefs__opt input` (0,2,1). Actual:
+  new rules are (1,3,1)/(1,3,2)/(1,3,1) (`.of-prefs__opt` + `[data-of-pref]` + `:disabled`), the
+  incumbent is (0,1,1). The ID wins regardless — don't "fix" the rules to match the note.
+- `:has()` in this band deliberately carries **only `cursor`**, never the colour/opacity. That is
+  the invariant to preserve: a `:has()` failure must degrade to *no* state change, never to a live
+  control that looks disabled. If you extend this band, keep colour/opacity out of `:has()`.
+- This band produces **no** sf/of validate warning: the warn regex is `\.(sf|of)-[\w-]+\s*\{` and
+  every selector here continues past the class (`… input[…]`, `…:has(…)`), so it never matches.
+  Only `05`/`07` trip it. Don't read the absent warning as the band having gone missing.
+- **The effect is state-dependent and invisible to static QA**: the `disabled` attribute exists
+  only after a user checks 3 preferences, so `curl`/`qa.py`/the local preview can never render it.
+  Browser-only verification. The local preview is doubly blind here — the funnel is a PLACEHOLDER
+  box (see WP-F4 note), so no `of-*` rule is exercised locally at all.
+
+### WP-R2 (2026-08-16) — surcharge reframe: R1 band, R3 override, R4 FAQ
+
+- **New owner row:** `landing/sections/07-surcharge.json` (`<style class="gs-surcharge">`, exactly
+  one rule: `#orderFunnel .of-subnote{color:#194536;background:#EAF3DF}`). `overrides.json` is now
+  **2 rules** — `#sfOrderBtn` first (untouched), then the prefs-subtitle `text`. `60-faq.json` is
+  **7 items** (surcharge item inserted 4th, right after «Как проходит оплата?»).
+- **The live funnel JS is fetchable and worth fetching** — every §0 claim in SURCHARGE_STRATEGY was
+  re-verified against it in ~2 minutes, rather than trusted:
+  `curl -A "Mozilla/5.0 … Chrome/124.0" https://olive.kz/js/order-funnel.js?v=1786535059` (200,
+  71 649 B; the `?v=` comes from `research/preview-v1133.html`). Confirmed: `of-head__sub` has
+  **zero** occurrences in the whole file → the R3 `text` override can never be clobbered;
+  `renderReplaceCost` (:742) writes only `textContent` + `classList`; basis `full = periodDays +
+  periodGift` (:759); `MAX_PREFS = 3` (:917); `is_replaced` → `of-meal--swapped` + icon (:404).
+- **Line numbers in SURCHARGE_STRATEGY §0 are against `funnel-1058.html`, not the 1133 baseline.**
+  The prefs subtitle is :457 there but **:482** in `research/preview-v1133.html`; the checkout
+  replace row is :924. Same nodes, so the spec is right — just don't `sed -n '457p'` the new file
+  and conclude the node moved.
+- Contrast recomputed from the hexes, not copied: `#194536`/`#EAF3DF` = **9.45**, incumbent
+  `#e53935`/`#fdecea` = **3.70**. `#EAF3DF` is not a new colour (AUDIT.md:161, VISUAL_REFRESH S1/S2).
+- **R5 (checkout row label) deliberately skipped**, not blocked: its selector
+  `#orderFunnel [data-co-replace-row] span:first-child` does match static markup
+  (`preview-v1133.html:924`, JS touches only `[data-co-replace]` and the row's `d-none`), so it is a
+  safe pickup if anyone wants a 3rd override. Overrides stay at 2.
+- `validate.py` warns `overrides[1] … selector not found in research/gosura.html` — **expected and
+  permanent** for any funnel-scoped override: `gosura.html` is the funnel-less 871 page. Verify
+  those against `preview-v1133.html` instead. Total: 0 errors, 4 warnings, exit 0.
+- **Open, not mine to edit:** `60-faq.json`'s last item «Можно ли заменить блюдо?» answers «Да,
+  замена блюд доступна…» with no hint that a replacement can cost money. It is not false, and the
+  new item now explains the charge three items earlier — but that answer read alone implies free.
+  Its owner should fold in «разница в цене блюд может добавиться к заказу».
+
+### WP-R4 · `09-pseudo.json` — the droppable pseudo-content band (2026-08-16)
+
+- **Every `content:` declaration of the round is in this one file (7 of them).** Verified with a
+  strict `(?<![-\w])content\s*:` scan across all fragments — 09 is the only hit.
+  **Gotcha for the WP-R5 gate:** a naive `grep 'content:'` reports **6 false positives** from
+  `justify-content:` in `20-/30-/40-/80-` gs- blocks. Use the negative-lookbehind form or you will
+  "fail" the no-content-outside-gs-pseudo check on blocks that ship no generated copy at all.
+- **Drop test executed and passed** (`rm 09-pseudo.json` → assemble 12 sections exit 0 → validate
+  exit 0, 4 warnings, `gs-pseudo` absent; restored byte-identical, md5 `858e8c37…`). Nothing else
+  depends on this band: WP-R3 ships the disabled *state*, 09 only adds the *explanation*.
+- **`validate.py` does not warn on this band**, unlike 05/07/08. Its regex is
+  `\.(sf|of)-[\w-]+\s*\{` and every selector here ends `::after{`, so it never matches. A band with
+  zero warnings is not evidence the rules are absent — count `{` blocks (8 here).
+- Markup facts re-verified in `research/preview-v1133.html` (not just funnel-1058): funnel root is
+  `<div class="of" id="orderFunnel">` (:209); **5** `of-screen`s — menu(:214, `is-active`, **no
+  topbar**), preview(:302), prefs(:475), delivery(:670), checkout(:841); all four topbars contain
+  only `.of-back` and `of-topbar__title` occurs **0 times** in the render, so `::after` is the sole
+  label and clobbers nothing. Step numbering is truthful: the spine is menu→preview→delivery→
+  checkout (`data-next="delivery"` at :452), prefs is a detour entered at :360 → it gets a name,
+  not a number.
+- `.of-subnote` (:450) lives on the **preview** screen, not the menu screen — the strategy doc's
+  "menu screen" means the menu *preview*. `.d-none` is `display:none!important`
+  (order-funnel.css:802), so the explainer is hidden with the note; it can never appear alone.
+- Pseudo-element boxes land correctly because the parents are flex: `.of-topbar` flex row (css:136),
+  `.of-total` flex column whose last child is the pay button (css:1148, render :928),
+  `.of-prefs` flex column (css:482). None of these had an existing `::before/::after` — checked.
+- **ePay claim is evidenced, not assumed:** the render loads
+  `https://epay.homebank.kz/payform/payment-api.js` (:1460) and states the same in the FAQ (:1199)
+  and trust strip (:988).
+- **Known cosmetic imprecision, shipped verbatim on purpose:** P's `margin-right:36px` balances
+  `.of-back` (36px, css:153) but ignores `.of-topbar`'s `gap:8px`, so the label sits ~4px off
+  optical centre; at ≥900px `.of-back` becomes 40px (css:1194) while the margin stays 36px. Text
+  only, no layout risk — do not "fix" it without re-verifying the spec.
+
+### WP-R1 (2026-08-16) — restyle core, band `06-restyle.json`
+
+- `06-restyle.json` ships VISUAL_REFRESH §3 T1–T3, C1–C5, S1–S4, O1, E1, D: **20 rule blocks,
+  23 selectors, all `#orderFunnel`-scoped, zero `content:`, zero `display/visibility/position`.**
+  Marker class `gs-restyle`. Assembles at section index 1, right after `gs-fixes`. 05 stayed
+  byte-identical (7 rules). Zero selector+property collisions with bands 05/07/08/09 — re-run the
+  disjointness check if you add a rule.
+- **C1 is safe to ship as a var swap:** all 13 `var(--of-muted)` consumers in `order-funnel.css`
+  are `color:` — none is a background or border, so `#6B6B6B` cannot change a surface.
+- **`of-*` sizes have a desktop twin at `@media (min-width:900px)` (order-funnel.css:1187–1302),
+  and media queries add no specificity.** T3's unconditional (1,1,0) rules therefore win there
+  too: `.of-hero__title` 44px→20px and `.of-plan__price` 22px→15px on ≥900px. VISUAL_REFRESH
+  computed at 390px only and did not account for this block. Shipped verbatim as specced —
+  if it reads wrong in the browser, the one-line fix is wrapping those two declarations in
+  `@media (max-width:899px)`. `of-total__sum` (22px) and `of-plan__perday` (12px) already match
+  their desktop values, so only those two rules are affected.
+- **`<br>` after a `display:block` element yields a blank line.** VISUAL_REFRESH §2.1 specs both
+  `display:block` on `.gs-orderbar__price` *and* a `<br>` after it. Kept the markup verbatim
+  (WORK_PACKAGES quotes it) and dropped `display:block`; `<br>` alone gives the line break, so
+  the rendered result is what §2.1 intended. Same trap for any future two-line `gs-` label.
+- **`--gs-fs-h2` is `clamp(1.5625rem,1.1rem + 2vw,2.5rem)`, not a flat 25px.** VISUAL_REFRESH §2.2
+  and DS §5.5 both gloss it as "25px" — true at 390px (25.4px), but it reaches **40px** at
+  ≥1120px, so `.gs-dish__kcal` is a 40px numeral on desktop cards that are 280px wide. Used the
+  token as specced; check the desktop card in the browser pass. Any spec that quotes a `--gs-fs-*`
+  value in px is quoting the *fallback*, not the token.
+- Re-verified this round: cheapest plan's 14/30-day `perDay` is **5 000** (`window.OLIVE_PRICING`
+  plan 5, periods 3–4), so «от 5 000 ₸/день» in the orderbar is true; all six dish cards in
+  `40-dishes.json` still match the live `meals` payload verbatim (name/mass/kcal/Б-Ж-У).
