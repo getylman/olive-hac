@@ -1,5 +1,6 @@
-__pycache__/
-*.pyc
 
 # local render output
+*.pyc
+.DS_Store
+__pycache__/
 preview/out/

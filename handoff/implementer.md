@@ -450,3 +450,75 @@ What landed (marker-verified on the server render `research/preview-v1202.html`)
   left for the register's owner.
 - Suggestion not acted on (out of scope): add `home_advantages` to qa.py `KNOWN_BAD` so nobody
   re-adds the «400+ блюд» block; FORBIDDEN only catches it after a render.
+
+## LK round — 2026-08-16 (draft 1337)
+
+User brief: hero from `hero.txt` (21st.dev *AnimatedMarqueeHero*), the funnel made to read
+like Level Kitchen's `program-configurator` (levelkitchen.com/spb «Выбор программы»), five
+sections deleted, gsDishes + gsPlans given the LK treatment, LK's `summary-container` added,
+plus more contrast / bigger type / fade-in. Four scope questions were put to the user first;
+all four came back on the recommended option (real Olive photos in the marquee; CSS-only
+funnel restyle; delete but fold the trust proof into the funnel/summary; LK treatment for
+dishes and plans).
+
+### Verified facts new this round
+
+- **`window.OLIVE_PRICING` is on the page** and is what `order-funnel.js` charges from.
+  Re-verified against the LIVE page (not the saved render) on 2026-08-16: plan 5 = 10 000 /
+  50 000 / 140 000 (+14) / 300 000 (+30). Every plan halves its per-day price on periods 3
+  and 4, so **«день еды −50%» is plan-independent** — that is why it can be a static CSS
+  badge in 09-pseudo.
+- **`[data-total-sum]` exists only on the checkout screen.** On menu/preview the live price
+  node is `[data-price-perday]`. The summary bar's first cut gated on `[data-total-sum]` and
+  therefore never synced for a user who had chosen a ration but not reached checkout — the
+  exact state it exists for. It now falls back to per-day.
+- **`meals` exposes no images, but the funnel's menu endpoint does** (`m.images`,
+  order-funnel.js `mealImages()`). Unused this round; a future dish grid could pull real
+  photography from there instead of emoji tiles.
+- **Usable Olive photography** (all curl-verified 200): `quality/1-3.webp` (real production),
+  `promo-food.webp` (tray), `banner-menu-food.webp` (1204x351 dish spread — three
+  background-position slices give three distinct tiles), `form.webp` (1981x816, lime + trays).
+  `features/1-4.webp` are 160x160 **icons, not photos** (50-advantages had been using three of
+  them as photos); `banner-olive`, `promo-olive`, `result` are mascot art.
+- **The site header is `position:fixed`, 49.75px at 390px.** Any section placed first must
+  carry its own top padding — the previous hero's tagline sat behind the chrome.
+
+### Changes
+
+- **03-hero.json** rebuilt: tagline pill, word-staggered headline (framer-motion variants →
+  keyframes), description, two CTAs sharing one row, and a photo marquee (8 tiles duplicated,
+  `translateX(-50%) → 0`). Headline stays a `<p>`; the single `<h1>` is still the funnel's.
+- **04-skin.json**: `--gs7-muted` #697260 → **#4E5748** (5.03 → 7.55 on white), body/lead/h2
+  sizes up one step, and the new **`.gs-reveal`** scroll-in utility + its script.
+- **09-zconfigurator.json** (new band, sorts last of ours): the funnel restyled into the LK
+  configurator. Screen 1 → «Объём» 2-col chip grid; screen 2 → duration popover promoted to a
+  static chip grid, LK card geometry, and `.of-mbar` turned into the floating dark summary.
+- **09-pseudo.json** += «Продолжительность» heading, the −50% badges, and the folded trust
+  strip under the calorie grid.
+- **35-plans / 40-dishes** rebuilt in LK form (duration chips with economy badges; dark
+  nutrition panel + 2-col dish cards). **80-orderbar** → `.gs-summary`, LK's floating summary.
+- **Deleted**: 15-cals, 20-trust, 30-steps, 50-advantages, 55-quality.
+
+### Gotchas new this round
+
+- **Fragment names must match `^\d\d-[\w.-]+\.json$`** — `09z-configurator.json` is rejected
+  by assemble.py (two digits then a hyphen). Use `09-z…` to sort after `09-pseudo`.
+- **The `.d-none` override needs both `!important` and higher specificity.** Bootstrap ships
+  `.d-none{display:none!important}`; `#orderFunnel [data-pdd] > .of-dd__menu` (1,1,1) with
+  `!important` wins. Scope it to `[data-pdd]` — the checkout dropdown `[data-cdays]` must keep
+  its popover behaviour.
+- **The duration trigger is inert once the menu is always open** and is now `display:none`.
+  Its `[data-pdd-label]` node still receives `applyPeriod()`'s text and the summary bar reads
+  it — do not remove the node from consideration just because it is not painted.
+- **Do not build reveal-on-scroll on IntersectionObserver here.** The page's CTAs are anchor
+  jumps; a jump straight past a section can move it from below the viewport to above it with
+  no intersecting frame, and the section stays at `opacity:0` forever. The band uses a
+  rAF-throttled "top above the reveal line" test, which is also true for anything already
+  scrolled past. First pass runs synchronously (a background tab gets no rAF ticks).
+- **Verifying in a hidden browser pane is misleading**: rAF is suspended, so reveal and the
+  summary-bar sync both read as broken until a screenshot forces a frame. Screenshot, then
+  re-query.
+- **qa.py's customers/orders warnings are now permanent and expected** — those figures left
+  the page with 20-trust. Nothing to refresh; ignore the "Refresh 20-trust.json" hint.
+- `body` now carries `padding-bottom` for the floating bar **and** the footer wash, otherwise a
+  white band shows under `.sf-footer`.
