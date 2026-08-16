@@ -689,6 +689,42 @@ lime in the bottom block.
   65-ask contributes no warning of its own, and `landing/config.json` md5 was identical
   before and after.
 
+## Preview-screen fix round (2026-08-16, orchestrator) — draft **1456**, qa 45/0/2 (the 2 = permanent counter warns)
+
+User-reported, both bugs were ours, both fixed in `09-zconfigurator.json`:
+
+- **Mobile «летит вверх и виден только фон»:** order-funnel.css:661-678 makes the whole
+  preview-screen `.of-col--side` `position:sticky;top:0` on <900px, and order-funnel.js:25-46
+  slides it away with `translateY(-110%)` on downward scroll. The platform assumed a compact
+  dropdown form; the LK static chip grid made the column viewport-tall, so it flew up and left
+  a full-viewport empty sticky slot (bare `--of-bg`) before the day list. Fix: `position:static`
+  + `.is-hidden{transform:none}` on <900px. The JS keeps toggling the class harmlessly; price
+  and «Далее» stay reachable via the floating `.of-mbar`. If a future round re-compacts the
+  side column, sticky could be restored, but only with the height threshold re-checked.
+- **Desktop duration chips were 78px wide:** the old `@media(min-width:900px)` rule set
+  `[data-pdd] > .of-dd__menu` to `repeat(4,1fr)`, but on >=900px the chips sit inside the
+  360px `.of-col--side` (of-cols--2 grid), not full width. Labels/prices wrapped and the
+  −50% badge folded into a white ellipse. Rule deleted; base 2-col grid is right at every
+  width the column can take. (Screen 1 `.of-plans` 4-col is untouched — that one really is
+  full-width.) The 09-pseudo badge also gained `white-space:nowrap`.
+- **`<button>` does not inherit font-family** — `.of-meal__replace` set size/weight only, so
+  «Заменить» rendered in the UA font and read as foreign. `font-family:inherit` + pill
+  geometry in 09z. Check any other funnel `<button>` a restyle touches for the same trap.
+- Menu-load placeholders (`[data-meals] .of-hint`) got a card face + the list a 180px
+  min-height so slow loads never read as a blank screen.
+
+Suggestion round in the same pass: hero copy order is now h → КБЖУ pill → ration range
+(03-hero); hero strip is a tilted plane (`perspective+rotateX+rotate`) whose drift is
+scroll-velocity-driven by an inline script, with the CSS keyframe marquee as the no-JS
+fallback; 45-marquee is a two-row opposite-drift scroll-velocity ribbon whose no-JS state is
+the old static single-copy wrapping row (JS quadruples rows before going live — keep that
+order or the fallback shows facts 4×); «Что внутри рациона» → «Меню дня» (40-dishes);
+«Начни уже сегодня» → «Ваш тариф» (70-plans). Script-advisory warnings in validate are now
+4 (hero, marquee, dishes, orderbar) — all expected. Lenis-style scroll hijacking was
+deliberately NOT ported for the smooth-scroll ask: external libs are banned, the funnel's
+own `scrollIntoView` would fight it, and `html{scroll-behavior:smooth}` (order-funnel.css:10)
+already smooths anchor jumps.
+
 ### WP-W2 (2026-08-16) — `50-day.json`, the day timeline
 
 - **A subagent shell has no `$OLIVE_MCP_URL`** (it is not in `~/.bashrc`/`~/.profile` either),
