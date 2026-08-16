@@ -33,6 +33,8 @@ python3 tools/qa.py <version_id>                # QA what the server actually bu
 ./tools/olive.py show gosura                    # versions and status
 ./tools/olive.py call meals '{"per_page":100}'  # real data (meals|overview|delivery_zones|…)
 ./tools/olive.py save gosura landing/config.json --label "..." --status draft
+
+tools/ship.sh [-l "label"] [-n] <token|url>     # one-shot: assemble→validate→save draft→QA
 ```
 
 `OLIVE_MCP_URL` **must be exported** (`https://olive.kz/mcp/landings/<token>`) — the token is a
