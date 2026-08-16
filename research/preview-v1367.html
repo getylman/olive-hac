@@ -5,7 +5,7 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <meta name="csrf-token" content="vZtIil2QVQqBINdiywPGwCpSV8DemYpyfbjzHa4p">
+    <meta name="csrf-token" content="BVHYcleoBRrteo8fKqctVEHMEzaXI9tClHZCgMZK">
     <meta name="description" content="Правильное питание с доставкой в Алматы: ПП меню на неделю, сбалансированные рационы для похудения и здоровья. Готовое питание от Olive.kz">
     <meta name="keywords" content="доставка еды, рационы питания, здоровое питание">
     <title>Готовые рационы с доставкой по Алматы | O-live</title>
@@ -65,7 +65,7 @@
     <link rel="stylesheet" href="https://olive.kz/css/hover-slide.css?v=1784098617">
     <link rel="stylesheet" href="https://olive.kz/css/order-funnel.css?v=1786535059">
 </head>
-<body data-landing-version="1363">
+<body data-landing-version="1367">
 <noscript><div><img src="https://mc.yandex.ru/watch/104935856" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
 
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WBLND5HX"
@@ -182,75 +182,108 @@
 
 <main>
                                     <style class="gs-hero-css">
-/* Hero — the 21st.dev AnimatedMarqueeHero layout (hero.txt) with the motion removed at the
-   user's request: tagline pill, headline, one short line of copy, two CTAs, then a photo
-   strip. The strip no longer auto-scrolls and the tiles are no longer rotated; they are one
-   uniform 4:3 size and the strip is swipeable (scroll-snap).
+/* Hero — 21st.dev AnimatedMarqueeHero (hero.txt) ported to plain CSS: tagline pill,
+   word-staggered title, description, CTA, and a looping photo marquee at the bottom.
+   framer-motion variants become keyframes; the duplicated image array becomes a track
+   duplicated in markup and translated -50% -> 0 for a seamless loop.
+   Headline stays a <p>: the page's single <h1> belongs to the funnel (qa.py rule).
    Photos are Olive's own assets, root-relative (same-origin; validate.py counts only
-   absolute/protocol-relative as external), each curl-verified 200 on 2026-08-16, and they
-   are real <img> with width/height so the browser's preload scanner starts them with the
-   HTML instead of after the CSS — CSS background-images cannot be discovered that early.
-   banner-menu-food.webp is a 1204x351 dish spread, so three object-position slices give
-   three distinct tiles. alt="" keeps a failed load silent (no broken-image glyph) and the
-   tile's wash shows through. */
+   absolute/protocol-relative as external), each curl-verified 200 on 2026-08-16.
+   banner-menu-food.webp is 1204x351 (a dish spread) so three background-position
+   slices give three distinct tiles; every tile has a gradient under the image, so a
+   failed load degrades to the spring wash with no broken-image glyph. */
+/* top padding clears the site's fixed .sf-header — measured 49.75px at 390px on the
+   live render (v1331); without it the tagline pill sits behind the chrome */
 .gs-hero{position:relative;overflow:hidden;background:#fff;padding:68px 0 0;text-align:center}
 .gs-hero__arc{position:absolute;top:-46%;left:50%;transform:translateX(-50%);width:150%;height:76%;
   background:linear-gradient(180deg,#DCEBC4,rgba(220,235,196,0));border-radius:0 0 50% 50%;
   opacity:.85;pointer-events:none}
 .gs-hero__in{position:relative;max-width:1200px;margin:0 auto;padding:0 20px}
-.gs-hero__tag{display:inline-block;margin:0 0 18px;padding:9px 16px;border-radius:999px;
-  border:1px solid rgba(32,39,26,.16);background:rgba(255,255,255,.65);
+.gs-hero__tag{display:inline-block;margin:0 0 18px;padding:8px 16px;border-radius:999px;
+  border:1px solid rgba(32,39,26,.16);background:rgba(255,255,255,.6);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
   font:700 .8125rem/1.35 var(--gs-text,"Museo Sans Cyrl",-apple-system,"Segoe UI",Roboto,Arial,sans-serif);
   color:var(--gs7-deep,#2C4E28);max-width:34ch}
-.gs-hero__h{margin:0;font:800 clamp(3.25rem,15vw,6.5rem)/0.95 var(--gs-display,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif);
+.gs-hero__h{margin:0;font:800 clamp(3.5rem,16vw,7rem)/0.94 var(--gs-display,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif);
   letter-spacing:-.05em;color:var(--gs7-ink,#20271A);text-wrap:balance}
-.gs-hero__sub{margin:18px auto 24px;max-width:24ch;
+.gs-hero__w{display:inline-block}
+.gs-hero__sub{margin:20px auto 26px;max-width:26ch;
   font:500 clamp(1.0625rem,4.4vw,1.375rem)/1.45 var(--gs-text,"Museo Sans Cyrl",-apple-system,"Segoe UI",Roboto,Arial,sans-serif);
   color:var(--gs7-muted,#4E5748)}
 .gs-hero__cta{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;max-width:420px;margin:0 auto}
-.gs-hero__btn{flex:1 1 0;min-width:0;display:inline-flex;align-items:center;justify-content:center;
-  min-height:58px;padding:18px 12px;border-radius:999px;background:var(--gs7-green,#3F6B39);
-  color:#fff;text-decoration:none;
+/* both CTAs share one row on a 390px viewport (flex:1 with min-width:0) instead of
+   stacking — the stacked pair pushed the offer a further ~70px below the fold */
+.gs-hero__btn{flex:1 1 0;min-width:0;display:inline-flex;align-items:center;justify-content:center;min-height:58px;padding:18px 12px;
+  border-radius:999px;background:var(--gs7-green,#3F6B39);color:#fff;text-decoration:none;
   font:700 1.0625rem/1.05 var(--gs-text,"Museo Sans Cyrl",-apple-system,"Segoe UI",Roboto,Arial,sans-serif);
-  box-shadow:0 14px 28px -14px var(--gs7-deep,#2C4E28)}
+  box-shadow:0 14px 28px -14px var(--gs7-deep,#2C4E28);transition:background .15s,transform .15s}
 .gs-hero__btn:hover,.gs-hero__btn:focus{background:var(--gs7-green2,#4E8046);color:#fff}
+.gs-hero__btn:active{transform:scale(.97)}
 .gs-hero__btn--ghost{background:transparent;color:var(--gs7-green,#3F6B39);
   border:1.5px solid var(--gs7-green,#3F6B39);box-shadow:none}
 .gs-hero__btn--ghost:hover,.gs-hero__btn--ghost:focus{background:var(--gs7-soft,#F4F8EE);color:var(--gs7-deep,#2C4E28)}
-.gs-hero__strip{display:flex;gap:12px;margin-top:32px;padding:0 20px 24px;overflow-x:auto;
-  overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;
-  scroll-snap-type:x mandatory;scroll-padding-left:20px}
-.gs-hero__tile{flex:0 0 auto;width:168px;aspect-ratio:4/3;border-radius:18px;overflow:hidden;
-  background:linear-gradient(140deg,#DCEBC4,#C3DF9C);scroll-snap-align:start;
-  box-shadow:0 16px 32px -22px rgba(32,39,26,.5)}
-.gs-hero__tile img{display:block;width:100%;height:100%;object-fit:cover}
-.gs-hero__tile img.gs-hero__crop--l{object-position:0% center}
-.gs-hero__tile img.gs-hero__crop--c{object-position:50% center}
-.gs-hero__tile img.gs-hero__crop--r{object-position:100% center}
+
+/* --- photo marquee --- */
+.gs-hero__marquee{position:relative;margin-top:34px;overflow:hidden;padding:14px 0 22px;
+  -webkit-mask-image:linear-gradient(to right,transparent,#000 7%,#000 93%,transparent);
+  mask-image:linear-gradient(to right,transparent,#000 7%,#000 93%,transparent)}
+.gs-hero__track{display:flex;gap:14px;width:max-content;animation:gs-marq 40s linear infinite}
+.gs-hero__tile{flex:0 0 auto;width:132px;aspect-ratio:3/4;border-radius:18px;overflow:hidden;
+  background-color:#DCEBC4;background-image:linear-gradient(140deg,rgba(220,235,196,0),rgba(195,223,156,.6));
+  box-shadow:0 16px 32px -20px rgba(32,39,26,.5)}
+.gs-hero__tile:nth-child(odd){transform:rotate(-2deg)}
+.gs-hero__tile:nth-child(even){transform:rotate(5deg)}
+.gs-hero__tile--a{background-image:url("/assets/images/banner-menu-food.webp"),linear-gradient(140deg,#DCEBC4,#C3DF9C);background-size:auto 100%,cover;background-position:0% center,center;background-repeat:no-repeat}
+.gs-hero__tile--b{background-image:url("/assets/images/quality/1.webp"),linear-gradient(140deg,#DCEBC4,#C3DF9C);background-size:cover,cover;background-position:center,center;background-repeat:no-repeat}
+.gs-hero__tile--c{background-image:url("/assets/images/promo-food.webp"),linear-gradient(140deg,#DCEBC4,#C3DF9C);background-size:cover,cover;background-position:center,center;background-repeat:no-repeat}
+.gs-hero__tile--d{background-image:url("/assets/images/banner-menu-food.webp"),linear-gradient(140deg,#DCEBC4,#C3DF9C);background-size:auto 100%,cover;background-position:38% center,center;background-repeat:no-repeat}
+.gs-hero__tile--e{background-image:url("/assets/images/quality/2.webp"),linear-gradient(140deg,#DCEBC4,#C3DF9C);background-size:cover,cover;background-position:center,center;background-repeat:no-repeat}
+.gs-hero__tile--f{background-image:url("/assets/images/form.webp"),linear-gradient(140deg,#DCEBC4,#C3DF9C);background-size:auto 130%,cover;background-position:2% center,center;background-repeat:no-repeat}
+.gs-hero__tile--g{background-image:url("/assets/images/banner-menu-food.webp"),linear-gradient(140deg,#DCEBC4,#C3DF9C);background-size:auto 100%,cover;background-position:76% center,center;background-repeat:no-repeat}
+.gs-hero__tile--h{background-image:url("/assets/images/quality/3.webp"),linear-gradient(140deg,#DCEBC4,#C3DF9C);background-size:cover,cover;background-position:center,center;background-repeat:no-repeat}
+@keyframes gs-marq{from{transform:translateX(-50%)}to{transform:translateX(0)}}
+
+/* --- entrance (framer-motion FADE_IN_ANIMATION_VARIANTS: y 10 -> 0, spring-ish) --- */
+@keyframes gs-rise{to{opacity:1;transform:none}}
+.gs-hero__tag,.gs-hero__w,.gs-hero__sub,.gs-hero__cta,.gs-hero__marquee{opacity:0;
+  transform:translateY(16px);animation:gs-rise .75s cubic-bezier(.2,.8,.2,1) forwards}
+.gs-hero__w:nth-child(1){animation-delay:.10s}
+.gs-hero__w:nth-child(2){animation-delay:.20s}
+.gs-hero__w:nth-child(3){animation-delay:.30s}
+.gs-hero__sub{animation-delay:.42s}
+.gs-hero__cta{animation-delay:.52s}
+.gs-hero__marquee{animation-delay:.60s}
+@media (prefers-reduced-motion:reduce){
+  .gs-hero__tag,.gs-hero__w,.gs-hero__sub,.gs-hero__cta,.gs-hero__marquee{animation:none;opacity:1;transform:none}
+  .gs-hero__track{animation:none}
+  .gs-hero__btn{transition:none}}
 @media (min-width:768px){
   .gs-hero{padding:84px 0 0}
-  .gs-hero__strip{justify-content:center;flex-wrap:wrap;overflow:visible}
-  .gs-hero__tile{width:224px}}
+  .gs-hero__tile{width:184px}
+  .gs-hero__marquee{margin-top:44px;padding:18px 0 30px}}
 </style>
 <section class="gs-hero">
   <div class="gs-hero__arc" aria-hidden="true"></div>
   <div class="gs-hero__in">
     <p class="gs-hero__tag">Нужный КБЖУ каждый день с доставкой по Алматы</p>
-    <p class="gs-hero__h">Питайся здорово</p>
+    <p class="gs-hero__h"><span class="gs-hero__w">Питайся</span> <span class="gs-hero__w">здорово</span></p>
     <p class="gs-hero__sub">Готовые рационы от 1&nbsp;200 до 2&nbsp;500 ккал.</p>
     <div class="gs-hero__cta">
       <a class="gs-hero__btn" href="#orderFunnel" data-cta="hero">Собрать рацион</a>
       <a class="gs-hero__btn gs-hero__btn--ghost" href="#gsDishes" data-cta="hero-menu">Смотреть меню</a>
     </div>
   </div>
-  <div class="gs-hero__strip" aria-hidden="true">
-    <div class="gs-hero__tile"><img class="gs-hero__crop--l" src="/assets/images/banner-menu-food.webp" alt="" width="168" height="126" fetchpriority="high" decoding="async"></div>
-    <div class="gs-hero__tile"><img src="/assets/images/quality/1.webp" alt="" width="168" height="126" fetchpriority="high" decoding="async"></div>
-    <div class="gs-hero__tile"><img src="/assets/images/promo-food.webp" alt="" width="168" height="126" fetchpriority="high" decoding="async"></div>
-    <div class="gs-hero__tile"><img class="gs-hero__crop--c" src="/assets/images/banner-menu-food.webp" alt="" width="168" height="126" decoding="async"></div>
-    <div class="gs-hero__tile"><img src="/assets/images/quality/2.webp" alt="" width="168" height="126" decoding="async"></div>
-    <div class="gs-hero__tile"><img class="gs-hero__crop--r" src="/assets/images/banner-menu-food.webp" alt="" width="168" height="126" decoding="async"></div>
-    <div class="gs-hero__tile"><img src="/assets/images/quality/3.webp" alt="" width="168" height="126" decoding="async"></div>
+  <div class="gs-hero__marquee" aria-hidden="true">
+    <div class="gs-hero__track">
+      <div class="gs-hero__tile gs-hero__tile--a"></div><div class="gs-hero__tile gs-hero__tile--b"></div>
+      <div class="gs-hero__tile gs-hero__tile--c"></div><div class="gs-hero__tile gs-hero__tile--d"></div>
+      <div class="gs-hero__tile gs-hero__tile--e"></div><div class="gs-hero__tile gs-hero__tile--f"></div>
+      <div class="gs-hero__tile gs-hero__tile--g"></div><div class="gs-hero__tile gs-hero__tile--h"></div>
+      <div class="gs-hero__tile gs-hero__tile--a"></div><div class="gs-hero__tile gs-hero__tile--b"></div>
+      <div class="gs-hero__tile gs-hero__tile--c"></div><div class="gs-hero__tile gs-hero__tile--d"></div>
+      <div class="gs-hero__tile gs-hero__tile--e"></div><div class="gs-hero__tile gs-hero__tile--f"></div>
+      <div class="gs-hero__tile gs-hero__tile--g"></div><div class="gs-hero__tile gs-hero__tile--h"></div>
+    </div>
   </div>
 </section>
                                         <style class="gs-skin">
@@ -1895,11 +1928,11 @@ body{padding-bottom:116px;background:var(--gs7-soft,#F4F8EE)}
                             Алматы, ул. Коржын, Дом 11, Кв. 2
                         </span>
                     </div>
-                    <a href="/cdn-cgi/l/email-protection#1d75745d7271746b78337667" class="sf-footer__link">
+                    <a href="/cdn-cgi/l/email-protection#e88081a88784819e8dc68392" class="sf-footer__link">
                         <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path fill-rule="evenodd" clip-rule="evenodd" d="M27.4706 7.49196C27.4706 6.11843 26.3468 4.99463 24.9733 4.99463H4.99465C3.62111 4.99463 2.49731 6.11843 2.49731 7.49196V22.476C2.49731 23.8495 3.62111 24.9733 4.99465 24.9733H24.9733C26.3468 24.9733 27.4706 23.8495 27.4706 22.476V7.49196ZM24.9733 7.492L14.984 13.7353L4.99466 7.492H24.9733ZM24.9733 22.476H4.99466V9.98933L14.984 16.2327L24.9733 9.98933V22.476Z" fill="#C4F139"/>
                         </svg>
-                        <span class="sf-footer__text"><span class="__cf_email__" data-cfemail="1b73725b7477726d7e357061">[email&#160;protected]</span></span>
+                        <span class="sf-footer__text"><span class="__cf_email__" data-cfemail="761e1f36191a1f0013581d0c">[email&#160;protected]</span></span>
                     </a>
                 </div>
             </div>
@@ -2060,7 +2093,7 @@ body{padding-bottom:116px;background:var(--gs7-soft,#F4F8EE)}
     
     <script>
     (function () {
-        var versionId = 1363;
+        var versionId = 1367;
         var token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
         function send(type, meta) {
